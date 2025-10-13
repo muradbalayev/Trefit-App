@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "mobile",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "softwareKeyboardLayoutMode": "pan",
+      "package": "com.muradbalayev.mobile",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ],
+      "useNextNotificationsApi": true,
+      "enableDangerousExperimentalLeanBuilds": false,
+      "jsEngine": "hermes"
+    },
+    "notification": {
+      "icon": "./assets/icon.png",
+      "color": "#C0FF00",
+      "androidMode": "default",
+      "androidCollapsedTitle": "TreFit"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C0FF00",
+          "sounds": ["./assets/sounds/message.mp3"]
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "67dcc8f2-29e8-4bf7-a3c7-8a3d1ff70fcc"
+      },
+      "EXPO_PUBLIC_API_URL": "http://192.168.1.75:5000/api",
+      "EXPO_PUBLIC_IMAGE_URL": "http://192.168.1.75:5000/uploads"
+    }
+  }
+}

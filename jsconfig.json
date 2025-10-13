@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "allowJs": true,
+    "checkJs": false,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "./**/*.js",
+    "./**/*.jsx",
+    "./**/*.ts",
+    "./**/*.tsx"
+  ],
+  "exclude": ["node_modules", "dist", "build"]
+}
