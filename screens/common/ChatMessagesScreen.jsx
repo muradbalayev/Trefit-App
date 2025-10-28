@@ -10,7 +10,6 @@ import Section from "@/components/common/Section";
 import AppText from "@/components/ui/Text";
 import { useGetChatWithUserQuery, useGetChatMessagesQuery } from "@/store/redux/chat/services/chatApi";
 import { useSocket } from "@/contexts/SocketContext";
-import { playMessageSound } from "@/utils/soundManager";
 
 // Memoized message item component (outside main component)
 const MessageItem = memo(({ msg, isMyMessage, showDateSeparator, senderName, formatDate, formatTime }) => (
@@ -179,11 +178,7 @@ const ChatMessagesScreen = ({ route }) => {
       console.log('📨 New message received:', data);
       const { message: newMessage } = data;
       
-      // Play sound if message is from other user
-      if (newMessage.sender?._id !== user?._id) {
-        playMessageSound();
-      }
-      
+ 
       // Add message to realtime list (remove temp message if exists)
       setRealtimeMessages(prev => {
         // Remove temp message if this is the real one

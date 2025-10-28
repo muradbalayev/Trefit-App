@@ -105,7 +105,8 @@ const UploadWorkoutProgramScreen = ({ route }) => {
 
   const handleCloseSuccessModal = () => {
     setShowSuccessModal(false);
-    goBack();
+    // Navigate to Plans and reset navigation stack to prevent going back to CreatePlan
+    navigate('Plans', { replace: true });
   };
 
   if (isUploading) {
@@ -462,7 +463,7 @@ const styles = StyleSheet.create({
   uploadButtonText: {
     fontSize: 17,
     fontWeight: "700",
-    color: Colors.WHITE,
+    color: Colors.TEXT_BLACK,
   },
   uploadButtonTextDisabled: {
     color: Colors.TEXT_SECONDARY,

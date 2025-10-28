@@ -10,16 +10,12 @@ import { StatusBar } from 'react-native';
 import Colors from '@/constants/Colors';
 import { useLoadFonts } from '@/hooks/useLoadFonts';
 import { useEffect } from 'react';
-import { initializeSounds } from '@/utils/soundManager';
 import { requestNotificationPermissions } from '@/utils/notificationManager';
 
 export default function App() {
   const fontsLoaded = useLoadFonts();
 
   useEffect(() => {
-    // Initialize sounds when app starts
-    initializeSounds();
-    
     // Request notification permissions
     requestNotificationPermissions();
   }, []);

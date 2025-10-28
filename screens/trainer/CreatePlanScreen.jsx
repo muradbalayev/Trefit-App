@@ -114,12 +114,36 @@ const CreatePlanScreen = () => {
 
   const handleUploadPDF = () => {
     setShowSuccessModal(false);
-    navigate('UploadWorkoutProgram', { planId: createdPlanId });
+    // Clear form before navigating to prevent duplicate plan creation
+    setFormData({
+      title: "",
+      description: "",
+      goalType: "",
+      durationWeeks: "",
+      price: "",
+      tags: "",
+      difficulty: "beginner",
+    });
+    setTags([]);
+    // Navigate to upload screen with replace to prevent back to form
+    navigate('UploadWorkoutProgram', { planId: createdPlanId, replace: true });
   };
 
   const handleSkipUpload = () => {
     setShowSuccessModal(false);
-    navigate('Plans');
+    // Clear form before navigating
+    setFormData({
+      title: "",
+      description: "",
+      goalType: "",
+      durationWeeks: "",
+      price: "",
+      tags: "",
+      difficulty: "beginner",
+    });
+    setTags([]);
+    // Replace current screen to prevent going back to filled form
+    navigate('Plans', { replace: true });
   };
 
   return (

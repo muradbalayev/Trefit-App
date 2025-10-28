@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Trefit",
+    "slug": "trefit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -24,12 +24,8 @@
         "backgroundColor": "#ffffff"
       },
       "softwareKeyboardLayoutMode": "pan",
-      "package": "com.muradbalayev.mobile",
-      "permissions": [
-        "RECEIVE_BOOT_COMPLETED",
-        "VIBRATE",
-        "WAKE_LOCK"
-      ],
+      "package": "com.muradbalayev.trefit",
+      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "WAKE_LOCK"],
       "useNextNotificationsApi": true,
       "enableDangerousExperimentalLeanBuilds": false,
       "jsEngine": "hermes"
@@ -38,15 +34,14 @@
       "icon": "./assets/icon.png",
       "color": "#C0FF00",
       "androidMode": "default",
-      "androidCollapsedTitle": "TreFit"
+      "androidCollapsedTitle": "Trefit"
     },
     "plugins": [
       [
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#C0FF00",
-          "sounds": ["./assets/sounds/message.mp3"]
+          "color": "#C0FF00"
         }
       ]
     ],
@@ -55,10 +50,11 @@
     },
     "extra": {
       "eas": {
-        "projectId": "67dcc8f2-29e8-4bf7-a3c7-8a3d1ff70fcc"
+        "projectId": "fcff366b-f321-412b-8d5d-b2ffeb9a23d2"
       },
-      "EXPO_PUBLIC_API_URL": "http://192.168.1.75:5000/api",
-      "EXPO_PUBLIC_IMAGE_URL": "http://192.168.1.75:5000/uploads"
-    }
+      "EXPO_PUBLIC_API_URL": "https://trefit.onrender.com/api",
+      "EXPO_PUBLIC_IMAGE_URL": "https://trefit.onrender.com/uploads"
+    },
+    "owner": "muradbalayev"
   }
 }

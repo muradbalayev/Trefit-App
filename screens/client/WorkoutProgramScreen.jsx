@@ -21,6 +21,18 @@ const WorkoutProgramScreen = () => {
 
   const token = useSelector((state) => state.userAuth.accessToken);
 
+  // Debug: Log file info
+  React.useEffect(() => {
+    if (program?.file) {
+      console.log('Workout Program File Info:', {
+        fileName: program.file.fileName,
+        originalName: program.file.originalName,
+        fileSize: program.file.fileSize,
+        mimeType: program.file.mimeType
+      });
+    }
+  }, [program]);
+
   const handleDownloadPDF = async () => {
     if (!program?._id || !token) return;
     
@@ -93,7 +105,7 @@ const WorkoutProgramScreen = () => {
     <CustomScreen>
       <ScreenHeader title="Workout Program" action={goBack}/>
       
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
         {/* Personalized Banner */}
         {program?.isPersonalized && (
           <View style={styles.personalizedBanner}>
@@ -127,16 +139,18 @@ const WorkoutProgramScreen = () => {
           <View style={styles.fileInfoBox}>
             <View style={styles.fileInfoItem}>
               <Feather name="file" size={16} color={Colors.TEXT_SECONDARY} />
-              <AppText style={styles.fileInfoText}>
-                {program?.file?.originalName || program?.file?.fileName}
+              <AppText style={styles.fileInfoText} numberOfLines={1}>
+                {program?.file?.originalName || program?.file?.fileName || "Workout Program.pdf"}
               </AppText>
             </View>
-            <View style={styles.fileInfoItem}>
-              <Feather name="hard-drive" size={16} color={Colors.TEXT_SECONDARY} />
-              <AppText style={styles.fileInfoText}>
-                {formatFileSize(program?.file?.fileSize)}
-              </AppText>
-            </View>
+            {program?.file?.fileSize && (
+              <View style={styles.fileInfoItem}>
+                <Feather name="hard-drive" size={16} color={Colors.TEXT_SECONDARY} />
+                <AppText style={styles.fileInfoText}>
+                  {formatFileSize(program?.file?.fileSize)}
+                </AppText>
+              </View>
+            )}
           </View>
 
           <View style={styles.openButton}>
@@ -211,6 +225,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingVertical: 20,
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 80,
   },
   personalizedBanner: {
     flexDirection: "row",

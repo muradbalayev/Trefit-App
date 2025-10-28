@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { API_URL } from "@/store/redux/apiConfig";
 import * as SecureStore from 'expo-secure-store';
 import { setCredentials, clearCredentials } from "../userAuthSlice";
+import { API_URL } from "@/constants/Variables";
 
 // Base query with auth header
 const baseQuery = fetchBaseQuery({

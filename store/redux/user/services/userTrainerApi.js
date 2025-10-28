@@ -1,7 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setCredentials, clearCredentials } from "../userAuthSlice";
 import * as SecureStore from 'expo-secure-store';
-import { API_URL } from "@/store/redux/apiConfig";
+import { API_URL } from "@/constants/Variables";
 
 // Reauth logic for token refresh
 const baseQueryWithReauth = async (args, api, extraOptions) => {

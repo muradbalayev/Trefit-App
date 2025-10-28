@@ -16,6 +16,7 @@ import { useGetPlanDetailsQuery } from "@/store/redux/user/services/userPlanApi"
 import { useEnrollInPlanMutation } from "@/store/redux/user/services/userPlanApi";
 import ScreenHeader from "@/components/common/ScreenHeader";
 import { useSelector } from "react-redux";
+import { getAvatarUrl } from "@/constants/Paths";
 
 const PlanDetailsScreen = ({ route }) => {
   const { navigate, goBack } = useNavigate();
@@ -243,7 +244,7 @@ const PlanDetailsScreen = ({ route }) => {
               <View style={styles.trainerInfo}>
                 {plan.createdBy.avatar ? (
                   <Image
-                    source={{ uri: plan.createdBy.avatar }}
+                    source={{ uri: getAvatarUrl(plan.createdBy.avatar) }}
                     style={styles.trainerAvatar}
                   />
                 ) : (

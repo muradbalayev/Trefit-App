@@ -3,9 +3,8 @@ import { setCredentials, clearCredentials } from "../userAuthSlice";
 import * as SecureStore from 'expo-secure-store';
 import { userAccountApi } from "./userAccountApi";
 import { chatApi } from "@/store/redux/chat/services/chatApi";
-import { API_URL } from "@/store/redux/apiConfig";
+import { API_URL } from "@/constants/Variables";
 
-// API_URL is now provided by shared apiConfig to avoid circular imports
 
 // Token storage keys
 const ACCESS_TOKEN_KEY = 'auth_access_token';

@@ -1,6 +1,7 @@
 import React from "react";
-import { View, StyleSheet, ScrollView, Pressable, Alert } from "react-native";
+import { View, StyleSheet, ScrollView, Pressable, Alert, Linking } from "react-native";
 import { useNavigate } from "@/hooks/useNavigation";
+import { useSelector } from "react-redux";
 import Colors from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
 import { CustomScreen, Loading } from "@/components/common";
@@ -12,10 +13,13 @@ import {
   useTogglePlanStatusMutation, 
   useDeletePlanMutation 
 } from "@/store/redux/trainer/services/trainerPlanApi";
+import { API_URL } from "@/constants/Variables";
 
 const TrainerPlanDetailsScreen = ({ route }) => {
   const { navigate, goBack } = useNavigate();
   const { planId } = route?.params || {};
+  
+  const token = useSelector((state) => state.userAuth.accessToken);
   
   // Real API hooks
   const { data: plan, isLoading, error, refetch } = useGetPlanDetailsQuery(planId, {
@@ -100,6 +104,40 @@ const TrainerPlanDetailsScreen = ({ route }) => {
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 KB";
+    const kb = bytes / 1024;
+    if (kb < 1024) return `${kb.toFixed(0)} KB`;
+    const mb = kb / 1024;
+    return `${mb.toFixed(1)} MB`;
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!plan?.workoutProgram?._id || !token) return;
+    
+    try {
+      // Build protected download URL with token as query param
+      const downloadUrl = `${API_URL}/user/workout-program/download/${plan.workoutProgram._id}?token=${token}`;
+      
+      console.log('Opening download URL in browser');
+      
+      // Open in browser - browser will handle download
+      const canOpen = await Linking.canOpenURL(downloadUrl);
+      if (canOpen) {
+        await Linking.openURL(downloadUrl);
+      } else {
+        Alert.alert("Xəta", "Fayl açıla bilmədi");
+      }
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      Alert.alert(
+        "Xəta", 
+        "Fayl yüklənə bilmədi. Zəhmət olmasa yenidən cəhd edin."
+      );
+    }
   };
 
   // Loading state
@@ -197,9 +235,87 @@ const TrainerPlanDetailsScreen = ({ route }) => {
             )}
           </View>
 
+          {/* Workout Program Section */}
+          {plan.workoutProgram ? (
+            <View style={styles.workoutSection}>
+              <View style={styles.sectionHeaderRow}>
+                <AppText style={styles.sectionTitle} font="Bold">Workout Program</AppText>
+                <Pressable 
+                  style={styles.updatePdfButton}
+                  onPress={() => navigate('UploadWorkoutProgram', { planId })}
+                >
+                  <Feather name="refresh-cw" size={16} color={Colors.PRIMARY} />
+                  <AppText style={styles.updatePdfText}>Update</AppText>
+                </Pressable>
+              </View>
+              
+              <Pressable style={styles.workoutCard} onPress={handleDownloadPDF}>
+                <View style={styles.workoutIconContainer}>
+                  <Feather name="file-text" size={32} color={Colors.PRIMARY} />
+                  {plan.workoutProgram.version > 1 && (
+                    <View style={styles.versionBadge}>
+                      <AppText style={styles.versionText}>v{plan.workoutProgram.version}</AppText>
+                    </View>
+                  )}
+                </View>
+                
+                <View style={styles.workoutInfo}>
+                  <AppText style={styles.workoutTitle} numberOfLines={1}>
+                    {plan.workoutProgram.title}
+                  </AppText>
+                  {plan.workoutProgram.description && (
+                    <AppText style={styles.workoutDescription} numberOfLines={2}>
+                      {plan.workoutProgram.description}
+                    </AppText>
+                  )}
+                  
+                  <View style={styles.workoutMeta}>
+                    <View style={styles.workoutMetaItem}>
+                      <Feather name="file" size={14} color={Colors.TEXT_SECONDARY} />
+                      <AppText style={styles.workoutMetaText}>
+                        {plan.workoutProgram.file?.originalName || plan.workoutProgram.file?.fileName || 'PDF'}
+                      </AppText>
+                    </View>
+                    {plan.workoutProgram.file?.fileSize && (
+                      <View style={styles.workoutMetaItem}>
+                        <Feather name="hard-drive" size={14} color={Colors.TEXT_SECONDARY} />
+                        <AppText style={styles.workoutMetaText}>
+                          {formatFileSize(plan.workoutProgram.file.fileSize)}
+                        </AppText>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                
+                <Pressable style={styles.downloadButton} onPress={handleDownloadPDF}>
+                  <Feather name="download" size={20} color="black" />
+                </Pressable>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.noWorkoutSection}>
+              <View style={styles.noWorkoutCard}>
+                <View style={styles.noWorkoutIcon}>
+                  <Feather name="alert-circle" size={32} color={Colors.WARNING} />
+                </View>
+                <AppText style={styles.noWorkoutTitle}>PDF Yoxdur</AppText>
+                <AppText style={styles.noWorkoutText}>
+                  Bu plan üçün workout proqramı PDF-i yüklənməyib. PDF yükləməlisiniz ki, plan aktivləşsin.
+                </AppText>
+                <Pressable 
+                  style={styles.uploadNowButton}
+                  onPress={() => navigate('UploadWorkoutProgram', { planId })}
+                >
+                  <Feather name="upload" size={18} color="black" />
+                  <AppText style={styles.uploadNowText}>PDF Yüklə</AppText>
+                </Pressable>
+              </View>
+            </View>
+          )}
+
           {/* Quick Actions */}
           <View style={styles.quickActionsSection}>
-            <AppText style={styles.sectionTitle}>Quick Actions</AppText>
+            <AppText style={styles.sectionTitle} font="Bold">Quick Actions</AppText>
             <View style={styles.quickActionsRow}>
               <Pressable 
                 style={styles.quickActionCard}
@@ -247,7 +363,7 @@ const TrainerPlanDetailsScreen = ({ route }) => {
           {/* Enrolled Clients */}
           {plan.clientsEnrolled && plan.clientsEnrolled.length > 0 && (
             <View style={styles.clientsSection}>
-              <AppText style={styles.sectionTitle}>Enrolled Clients ({plan.clientsEnrolled.length})</AppText>
+              <AppText style={styles.sectionTitle} font="Bold">Enrolled Clients ({plan.clientsEnrolled.length})</AppText>
               <View style={styles.clientsList}>
                 {plan.clientsEnrolled.slice(0, 5).map((client, index) => (
                   <Pressable 
@@ -356,7 +472,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    color: "white",
+    color: Colors.TEXT_BLACK,
     fontWeight: "600",
   },
   planTitle: {
@@ -468,7 +584,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     color: Colors.TEXT,
-    fontWeight: "600",
     marginBottom: 12,
   },
   clientsList: {
@@ -548,6 +663,141 @@ const styles = StyleSheet.create({
   retryText: {
     color: 'black',
     fontWeight: '600',
+  },
+  workoutSection: {
+    marginBottom: 20,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  updatePdfButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.PRIMARY + "20",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  updatePdfText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.PRIMARY,
+  },
+  workoutCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.CARD,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+  },
+  workoutIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: Colors.PRIMARY + "20",
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  versionBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: Colors.BRAND,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: Colors.CARD,
+  },
+  versionText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.TEXT_BLACK,
+  },
+  workoutInfo: {
+    flex: 1,
+  },
+  workoutTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.TEXT,
+    marginBottom: 4,
+  },
+  workoutDescription: {
+    fontSize: 13,
+    color: Colors.TEXT_SECONDARY,
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  workoutMeta: {
+    gap: 6,
+  },
+  workoutMetaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  workoutMetaText: {
+    fontSize: 12,
+    color: Colors.TEXT_SECONDARY,
+    flex: 1,
+  },
+  downloadButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: Colors.PRIMARY,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noWorkoutSection: {
+    marginBottom: 20,
+  },
+  noWorkoutCard: {
+    backgroundColor: Colors.WARNING + "15",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.WARNING + "40",
+  },
+  noWorkoutIcon: {
+    marginBottom: 16,
+  },
+  noWorkoutTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.TEXT,
+    marginBottom: 8,
+  },
+  noWorkoutText: {
+    fontSize: 14,
+    color: Colors.TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  uploadNowButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.PRIMARY,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  uploadNowText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Colors.TEXT_BLACK,
   },
 });
 

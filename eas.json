@@ -6,13 +6,34 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.75:5000/api",
+        "EXPO_PUBLIC_IMAGE_URL": "http://192.168.1.75:5000/uploads"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.75:5000/api",
+        "EXPO_PUBLIC_IMAGE_URL": "http://192.168.1.75:5000/uploads"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://trefit.onrender.com/api",
+        "EXPO_PUBLIC_IMAGE_URL": "https://trefit.onrender.com/uploads"
+      }
+    },
+     "apk": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://trefit.onrender.com/api",
+        "EXPO_PUBLIC_IMAGE_URL": "https://trefit.onrender.com/uploads"
+      }
     }
   },
   "submit": {
