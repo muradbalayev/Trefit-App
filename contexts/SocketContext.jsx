@@ -2,7 +2,6 @@ import { API_URL } from '@/constants/Variables';
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import io from 'socket.io-client';
-import { API_URL } from '@/constants/Variables';
 
 // Socket.IO server base URL (without /api path)
 const SOCKET_URL = API_URL.replace('/api', '');

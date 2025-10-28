@@ -6,6 +6,7 @@ import { saveTokens } from '@/store/redux/user/services/userAuthApi'
 import Colors from '@/constants/Colors'
 import { CustomScreen, Input, SuccessModal } from '@/components/common'
 import AppText from '@/components/ui/Text'
+import { API_URL } from '@/constants/Variables'
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('')
@@ -75,7 +76,7 @@ const LoginScreen = () => {
       }
       
       if (err.error === 'TypeError: Network request failed') {
-        setErrorMessage('Network error: Cannot connect to server. Please check your internet connection and make sure the server is running.')
+        setErrorMessage(`Url: ${API_URL}\n Network error: Cannot connect to server. Please check your internet connection and make sure the server is running.`)
       } else if (err.data?.message) {
         setErrorMessage(err.data.message)
       } else {
