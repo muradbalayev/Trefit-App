@@ -8,6 +8,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Pressable,
 } from "react-native";
 import { CustomScreen } from "@/components/common";
 import ScreenHeader from "@/components/common/ScreenHeader";
@@ -61,6 +62,24 @@ const BodyProgressScreen = ({ navigation }) => {
   const selectedWeekData = weeklyPhotos.find((w) => w.week === selectedWeek);
   const isCurrentWeek = selectedWeek === currentWeek;
   const isLocked = selectedWeekData?.locked || false;
+  
+  // Calculate days remaining until next week is available
+  const getDaysRemaining = () => {
+    if (!selectedWeekData?.weekStartDate) return null;
+    
+    const startDate = new Date(selectedWeekData.weekStartDate);
+    const now = new Date();
+    const daysPassed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+    const daysRemaining = Math.max(0, 7 - daysPassed);
+    
+    return daysRemaining;
+  };
+  
+  const daysRemaining = getDaysRemaining();
+  const canMoveToNextWeek = isCurrentWeek && 
+    !isLocked && 
+    selectedWeekData?.photos?.length > 0 && 
+    (daysRemaining === 0 || daysRemaining === null);
 
   const handlePickImage = async (type) => {
     if (!isCurrentWeek) {
@@ -139,6 +158,16 @@ const BodyProgressScreen = ({ navigation }) => {
   };
 
   const handleMoveToNextWeek = () => {
+    if (!canMoveToNextWeek) {
+      if (daysRemaining > 0) {
+        Alert.alert(
+          "Week Locked",
+          `You must wait ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''} before moving to next week. This ensures consistent progress tracking.`
+        );
+      }
+      return;
+    }
+    
     Alert.alert(
       "Move to Next Week",
       "This will lock current week photos. You won't be able to edit them. Continue?",
@@ -152,7 +181,8 @@ const BodyProgressScreen = ({ navigation }) => {
               setSelectedWeek(currentWeek + 1);
               Alert.alert("Success", `Moved to Week ${currentWeek + 1}`);
             } catch (error) {
-              Alert.alert("Error", "Failed to move to next week");
+              const errorMessage = error?.data?.message || "Failed to move to next week";
+              Alert.alert("Error", errorMessage);
             }
           },
         },
@@ -230,7 +260,7 @@ const BodyProgressScreen = ({ navigation }) => {
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.weekButtons}>
                 {weeklyPhotos.map((weekData) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={weekData.week}
                     style={[
                       styles.weekButton,
@@ -253,12 +283,12 @@ const BodyProgressScreen = ({ navigation }) => {
                         size={12}
                         color={
                           selectedWeek === weekData.week
-                            ? Colors.TEXT
+                            ? Colors.TEXT_BLACK
                             : Colors.TEXT_SECONDARY
                         }
                       />
                     )}
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </ScrollView>
@@ -356,19 +386,37 @@ const BodyProgressScreen = ({ navigation }) => {
             {isCurrentWeek &&
               !isLocked &&
               selectedWeekData?.photos?.length > 0 && (
-                <TouchableOpacity
-                  style={styles.nextWeekBtn}
-                  onPress={handleMoveToNextWeek}
-                >
-                  <AppText style={styles.nextWeekText}>
-                    Move to Next Week
-                  </AppText>
-                  <Feather
-                    name="arrow-right"
-                    size={16}
-                    color={Colors.TEXT_BLACK}
-                  />
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    style={[
+                      styles.nextWeekBtn,
+                      !canMoveToNextWeek && styles.nextWeekBtnDisabled
+                    ]}
+                    onPress={handleMoveToNextWeek}
+                    disabled={!canMoveToNextWeek}
+                  >
+                    <AppText style={[
+                      styles.nextWeekText,
+                      !canMoveToNextWeek && styles.nextWeekTextDisabled
+                    ]}>
+                      {canMoveToNextWeek ? 'Move to Next Week' : 'Next Week Locked'}
+                    </AppText>
+                    <Feather
+                      name={canMoveToNextWeek ? "arrow-right" : "lock"}
+                      size={16}
+                      color={canMoveToNextWeek ? Colors.TEXT_BLACK : Colors.TEXT_SECONDARY}
+                    />
+                  </TouchableOpacity>
+                  
+                  {!canMoveToNextWeek && daysRemaining > 0 && (
+                    <View style={styles.countdownContainer}>
+                      <Feather name="clock" size={16} color={Colors.TEXT_SECONDARY} />
+                      <AppText style={styles.countdownText}>
+                        Available in {daysRemaining} day{daysRemaining !== 1 ? 's' : ''}
+                      </AppText>
+                    </View>
+                  )}
+                </>
               )}
           </View>
         ) : (
@@ -621,15 +669,39 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.BRAND,
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 20,
+  },
+  nextWeekBtnDisabled: {
+    backgroundColor: Colors.CARD,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
   },
   nextWeekText: {
     fontSize: 14,
     color: Colors.TEXT_BLACK,
     fontWeight: "600",
+  },
+  nextWeekTextDisabled: {
+    color: Colors.TEXT_SECONDARY,
+  },
+  countdownContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginTop: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.CARD,
+    borderRadius: 8,
+    alignSelf: "center",
+  },
+  countdownText: {
+    fontSize: 13,
+    color: Colors.TEXT_SECONDARY,
   },
   emptyState: {
     alignItems: "center",

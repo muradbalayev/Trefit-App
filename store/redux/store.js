@@ -33,7 +33,10 @@ export const store = configureStore({
     [userProgressApi.reducerPath]: userProgressApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(
+  getDefaultMiddleware({
+      immutableCheck: false,       // 🔧 disable heavy dev checks
+      serializableCheck: false,    // 🔧 disable serializable check
+    }).concat(
       userAuthApi.middleware, 
       userAccountApi.middleware,
       userPlanApi.middleware,

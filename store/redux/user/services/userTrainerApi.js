@@ -1,51 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setCredentials, clearCredentials } from "../userAuthSlice";
-import * as SecureStore from 'expo-secure-store';
-import { API_URL } from "@/constants/Variables";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "../../utils/baseQueryWithReauth";
 
-// Reauth logic for token refresh
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const baseQuery = fetchBaseQuery({
-    baseUrl: API_URL,
-    credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState()?.userAuth?.accessToken;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  });
-
-  let result = await baseQuery(args, api, extraOptions);
-
-  if (result?.error?.status === 401) {
-    // Try to refresh token
-    try {
-      const refreshToken = await SecureStore.getItemAsync('auth_refresh_token');
-      if (refreshToken) {
-        const refreshResult = await baseQuery({
-          url: '/user/auth/refresh',
-          method: 'POST',
-          body: { refreshToken }
-        }, api, extraOptions);
-
-        if (refreshResult?.data?.accessToken) {
-          await SecureStore.setItemAsync('auth_access_token', refreshResult.data.accessToken);
-          api.dispatch(setCredentials({ accessToken: refreshResult.data.accessToken }));
-          result = await baseQuery(args, api, extraOptions);
-        } else {
-          api.dispatch(clearCredentials());
-        }
-      } else {
-        api.dispatch(clearCredentials());
-      }
-    } catch (e) {
-      api.dispatch(clearCredentials());
-    }
-  }
-  return result;
-};
 
 export const userTrainerApi = createApi({
   reducerPath: "userTrainerApi",

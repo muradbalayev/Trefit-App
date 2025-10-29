@@ -28,11 +28,11 @@ export const NotificationProvider = ({ children }) => {
   const { socket, isConnected, on, off } = useSocket();
   
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [pendingNotification, setPendingNotification] = useState(null);
   const appState = useRef(AppState.currentState);
   const notificationListener = useRef();
   const responseListener = useRef();
+  const messageCountRef = useRef(0); // Track messages for badge
 
   // Request permissions on mount
   useEffect(() => {
@@ -136,8 +136,8 @@ export const NotificationProvider = ({ children }) => {
           senderRole: message.sender?.role || 'client',
         });
         
-        // Increment unread count
-        setUnreadCount((prev) => prev + 1);
+        // Increment message count for badge (handled by system)
+        messageCountRef.current += 1;
       }
     };
 
@@ -152,9 +152,9 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - clear badge
+        // App came to foreground - clear badge and reset count
         clearBadge();
-        setUnreadCount(0);
+        messageCountRef.current = 0;
       }
       
       appState.current = nextAppState;
@@ -162,18 +162,19 @@ export const NotificationProvider = ({ children }) => {
     });
 
     return () => {
-      subscription.remove();
+      if (subscription?.remove) {
+        subscription.remove();
+      }
     };
   }, []);
 
   const value = {
     permissionGranted,
-    unreadCount,
     pendingNotification,
     clearPendingNotification: () => setPendingNotification(null),
-    clearBadge: () => {
+    clearNotificationBadge: () => {
       clearBadge();
-      setUnreadCount(0);
+      messageCountRef.current = 0;
     },
   };
 

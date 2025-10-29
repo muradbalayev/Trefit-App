@@ -2,6 +2,12 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
+// Constants
+const ANDROID_CHANNEL_ID = 'trefit-chat-messages';
+const ANDROID_CHANNEL_NAME = 'Chat Messages';
+const NOTIFICATION_SOUND = 'default';
+const VIBRATION_PATTERN = [0, 250, 250, 250];
+
 // Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
 
@@ -56,14 +62,16 @@ export const requestNotificationPermissions = async () => {
     // Configure Android notification channel
     if (Platform.OS === 'android' && Notifications.setNotificationChannelAsync) {
       try {
-        await Notifications.setNotificationChannelAsync('chat-messages', {
-          name: 'Chat Messages',
+        await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+          name: ANDROID_CHANNEL_NAME,
           importance: Notifications.AndroidImportance?.HIGH || 4,
-          vibrationPattern: [0, 250, 250, 250],
+          vibrationPattern: VIBRATION_PATTERN,
           lightColor: '#C0FF00',
-          sound: 'default',
+          sound: NOTIFICATION_SOUND,
           enableVibrate: true,
+          showBadge: true,
         });
+        console.log('✅ Android notification channel created');
       } catch (channelError) {
         console.warn('⚠️ Could not create notification channel:', channelError.message);
       }
@@ -104,10 +112,10 @@ export const showChatNotification = async ({
       return;
     }
 
-    await Notifications.scheduleNotificationAsync({
+    const notificationConfig = {
       content: {
         title: senderName,
-        body: message,
+        body: message.length > 100 ? message.substring(0, 100) + '...' : message,
         data: {
           type: 'chat_message',
           chatId,
@@ -115,13 +123,19 @@ export const showChatNotification = async ({
           senderRole,
           senderName,
         },
-        sound: 'default',
-        badge: 1,
+        sound: NOTIFICATION_SOUND,
         priority: Notifications.AndroidNotificationPriority?.HIGH || 'high',
-        vibrate: [0, 250, 250, 250],
       },
       trigger: null, // Show immediately
-    });
+    };
+
+    // Add Android-specific config
+    if (Platform.OS === 'android') {
+      notificationConfig.content.channelId = ANDROID_CHANNEL_ID;
+      notificationConfig.content.vibrate = VIBRATION_PATTERN;
+    }
+
+    await Notifications.scheduleNotificationAsync(notificationConfig);
 
     console.log('📬 Chat notification shown:', senderName);
   } catch (error) {

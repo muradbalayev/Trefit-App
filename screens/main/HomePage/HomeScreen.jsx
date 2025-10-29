@@ -5,10 +5,12 @@ import {
   View,
   Alert,
   RefreshControl,
+  ImageBackground,
 } from "react-native";
 import { CustomScreen } from "@/components/common";
 import AppText from "@/components/ui/Text";
 import Colors from "@/constants/Colors";
+import Images from "@/constants/Images";
 import Header from "./(components)/Header";
 import OnboardSection from "./(components)/OnboardSection";
 import MyCoachSection from "./(components)/MyCoachSection";
@@ -73,18 +75,25 @@ const HomeScreen = ({ route }) => {
   };
 
   return (
-    <CustomScreen>
-      <ScrollView showsVerticalScrollIndicator={false}  refreshControl={
-          <RefreshControl
-            refreshing={isFetching}
-            onRefresh={refetch}
-            tintColor={Colors.BRAND}
-            colors={[Colors.BRAND]}
-            progressBackgroundColor={Colors.SECONDARY}
-          />
-        }>
-        <Header user={user} />
-        <View style={styles.sections}>
+    <CustomScreen isPaddingHorizontal={false} isPaddingVertical={false}>
+      <ImageBackground
+        source={Images.homeBg}
+        style={styles.backgroundImage}
+        imageStyle={styles.backgroundImageStyle}
+        resizeMode="cover"
+      >
+        <View style={styles.overlay} />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}  refreshControl={
+            <RefreshControl
+              refreshing={isFetching}
+              onRefresh={refetch}
+              tintColor={Colors.BRAND}
+              colors={[Colors.BRAND]}
+              progressBackgroundColor={Colors.SECONDARY}
+            />
+          }>
+          <Header user={user} />
+          <View style={styles.sections}>
           {hasActivePlan ? (
             <View>
               <MyCoachSection />
@@ -109,8 +118,9 @@ const HomeScreen = ({ route }) => {
               <TrainerSection />
             </View>
           )}
-        </View>
-      </ScrollView>
+          </View>
+        </ScrollView>
+      </ImageBackground>
     </CustomScreen>
   );
 };
@@ -118,6 +128,24 @@ const HomeScreen = ({ route }) => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    // paddingVertical: 16,
+    // paddingHorizontal: 20,
+  },
+  backgroundImageStyle: {
+    opacity: 0.17,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'transparent',
+  },
+  container: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
   sections: {
     flex: 1,
     paddingBottom: 80,

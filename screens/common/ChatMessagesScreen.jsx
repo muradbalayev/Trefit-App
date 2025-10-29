@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
 import { useSelector } from "react-redux";
 import { useNavigate } from "@/hooks/useNavigation";
 import Colors from "@/constants/Colors";
@@ -10,6 +10,21 @@ import Section from "@/components/common/Section";
 import AppText from "@/components/ui/Text";
 import { useGetChatWithUserQuery, useGetChatMessagesQuery } from "@/store/redux/chat/services/chatApi";
 import { useSocket } from "@/contexts/SocketContext";
+import { getCachedMessages, addMessageToCache } from "@/utils/chatCache";
+
+// Skeleton loader for messages
+const MessageSkeleton = memo(() => (
+  <View style={styles.skeletonContainer}>
+    {[1, 2, 3].map((i) => (
+      <View key={i} style={[
+        styles.skeletonMessage,
+        i % 2 === 0 ? styles.skeletonRight : styles.skeletonLeft
+      ]}>
+        <View style={styles.skeletonBubble} />
+      </View>
+    ))}
+  </View>
+));
 
 // Memoized message item component (outside main component)
 const MessageItem = memo(({ msg, isMyMessage, showDateSeparator, senderName, formatDate, formatTime }) => (
@@ -71,6 +86,8 @@ const ChatMessagesScreen = ({ route }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [realtimeMessages, setRealtimeMessages] = useState([]);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [cachedMessages, setCachedMessages] = useState([]);
+  const [showingCache, setShowingCache] = useState(false);
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   
@@ -99,8 +116,35 @@ const ChatMessagesScreen = ({ route }) => {
 
   const apiMessages = messagesData || [];
   
-  // Merge and deduplicate messages by _id
-  const mergedMessages = [...apiMessages, ...realtimeMessages];
+  // Load cached messages on mount
+  useEffect(() => {
+    const loadCachedMessages = async () => {
+      if (chat?._id) {
+        const cached = await getCachedMessages(chat._id);
+        if (cached && cached.length > 0) {
+          setCachedMessages(cached);
+          setShowingCache(true);
+          console.log(`📦 Showing ${cached.length} cached messages while loading`);
+        }
+      }
+    };
+    
+    loadCachedMessages();
+  }, [chat?._id]);
+  
+  // Hide cache indicator when API data arrives
+  useEffect(() => {
+    if (messagesData && messagesData.length > 0) {
+      setShowingCache(false);
+    }
+  }, [messagesData]);
+  
+  // Merge cached, API, and realtime messages
+  const messagesToMerge = showingCache && !messagesData 
+    ? [...cachedMessages, ...realtimeMessages]
+    : [...apiMessages, ...realtimeMessages];
+    
+  const mergedMessages = messagesToMerge;
   const uniqueMessages = mergedMessages.reduce((acc, current) => {
     const existingIndex = acc.findIndex(msg => msg._id === current._id);
     if (existingIndex === -1) {
@@ -178,6 +222,10 @@ const ChatMessagesScreen = ({ route }) => {
       console.log('📨 New message received:', data);
       const { message: newMessage } = data;
       
+      // Add to cache
+      if (chat?._id) {
+        addMessageToCache(chat._id, newMessage);
+      }
  
       // Add message to realtime list (remove temp message if exists)
       setRealtimeMessages(prev => {
@@ -331,8 +379,8 @@ const ChatMessagesScreen = ({ route }) => {
     );
   }, [allMessages, user?._id, actualRecipientName]);
 
-  // Loading state
-  if (chatLoading || messagesLoading) {
+  // Loading state - show loader only if no cached data
+  if ((chatLoading || messagesLoading) && cachedMessages.length === 0) {
     return (
       <Loading />
     );
@@ -398,14 +446,26 @@ const ChatMessagesScreen = ({ route }) => {
             onContentSizeChange={() => {
               flatListRef.current?.scrollToEnd({ animated: true });
             }}
+            ListHeaderComponent={() => (
+              showingCache && messagesLoading ? (
+                <View style={styles.loadingHeader}>
+                  <ActivityIndicator size="small" color={Colors.BRAND} />
+                  <AppText style={styles.loadingText}>Loading latest messages...</AppText>
+                </View>
+              ) : null
+            )}
             ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Feather name="message-circle" size={48} color={Colors.TEXT_SECONDARY} />
-                <AppText style={styles.emptyText}>No messages yet</AppText>
-                <AppText style={styles.emptySubtext}>
-                  Start the conversation with {actualRecipientName}
-                </AppText>
-              </View>
+              messagesLoading && cachedMessages.length === 0 ? (
+                <MessageSkeleton />
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Feather name="message-circle" size={48} color={Colors.TEXT_SECONDARY} />
+                  <AppText style={styles.emptyText}>No messages yet</AppText>
+                  <AppText style={styles.emptySubtext}>
+                    Start the conversation with {actualRecipientName}
+                  </AppText>
+                </View>
+              )
             )}
           />
    {otherUserTyping && (
@@ -610,7 +670,41 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.BRAND,
   },
   sendButtonInactive: {
+    opacity: 0.5,
+  },
+  skeletonContainer: {
+    padding: 16,
+    gap: 16,
+  },
+  skeletonMessage: {
+    flexDirection: 'row',
+  },
+  skeletonLeft: {
+    justifyContent: 'flex-start',
+  },
+  skeletonRight: {
+    justifyContent: 'flex-end',
+  },
+  skeletonBubble: {
+    width: '70%',
+    height: 60,
     backgroundColor: Colors.CARD,
+    borderRadius: 16,
+    opacity: 0.5,
+  },
+  loadingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    backgroundColor: Colors.SECONDARY,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 12,
+    color: Colors.TEXT_SECONDARY,
   },
   connectionStatus: {
     flexDirection: 'row',

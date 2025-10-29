@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "@/hooks/useNavigation";
 import { useGetChatsQuery } from "@/store/redux/chat/services/chatApi";
 import { useSocket } from "@/contexts/SocketContext";
+import { getCachedChats, updateChatLastMessage } from "@/utils/chatCache";
 import { Loading } from "@/components/common";
 import Colors from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
@@ -17,12 +18,34 @@ const ClientChatsScreen = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [realtimeChats, setRealtimeChats] = useState({});
+  const [cachedChats, setCachedChats] = useState([]);
+  const [showingCache, setShowingCache] = useState(false);
   
   // Socket.IO
   const { socket, on, off } = useSocket();
   
   // All hooks must be called before any conditional returns
   const { data: chatsData, isLoading, error, refetch } = useGetChatsQuery();
+  
+  // Load cached chats on mount
+  useEffect(() => {
+    const loadCachedChats = async () => {
+      const cached = await getCachedChats();
+      if (cached && cached.length > 0) {
+        setCachedChats(cached);
+        setShowingCache(true);
+        console.log(`📦 Client: Showing ${cached.length} cached chats`);
+      }
+    };
+    loadCachedChats();
+  }, []);
+  
+  // Hide cache indicator when API data arrives
+  useEffect(() => {
+    if (chatsData && chatsData.length > 0) {
+      setShowingCache(false);
+    }
+  }, [chatsData]);
   
   // Pull to refresh handler
   const onRefresh = async () => {
@@ -37,6 +60,10 @@ const ClientChatsScreen = () => {
     
     const handleNewMessage = (data) => {
       const { message } = data;
+      
+      // Update cache
+      updateChatLastMessage(message.chat, message.content, message.createdAt);
+      
       // Update last message for this chat
       setRealtimeChats(prev => ({
         ...prev,
@@ -62,8 +89,9 @@ const ClientChatsScreen = () => {
     console.error('Client chats error:', error);
   }
   
-  // Real API data (filtered automatically on backend based on enrolled plans)
-  const chats = Array.isArray(chatsData) ? chatsData : [];
+  // Use cached chats if API data not loaded yet
+  const chatsToShow = showingCache && !chatsData ? cachedChats : chatsData;
+  const chats = Array.isArray(chatsToShow) ? chatsToShow : [];
 
   const filteredChats = chats.filter(chat =>
     chat.trainerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||

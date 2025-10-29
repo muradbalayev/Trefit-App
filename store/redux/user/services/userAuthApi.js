@@ -1,9 +1,20 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { setCredentials, clearCredentials } from "../userAuthSlice";
 import * as SecureStore from 'expo-secure-store';
 import { userAccountApi } from "./userAccountApi";
+import { userProgressApi } from "./userProgressApi";
+import { userPlanApi } from "./userPlanApi";
+import { userTaskApi } from "./userTaskApi";
+import { userTrainerApi } from "./userTrainerApi";
+import { userWorkoutProgramApi } from "./userWorkoutProgramApi";
 import { chatApi } from "@/store/redux/chat/services/chatApi";
-import { API_URL } from "@/constants/Variables";
+import { clientPlanApi } from "@/store/redux/client/services/clientPlanApi";
+import { trainerClientApi } from "@/store/redux/trainer/services/trainerClientApi";
+import { trainerPlanApi } from "@/store/redux/trainer/services/trainerPlanApi";
+import { trainerTaskApi } from "@/store/redux/trainer/services/trainerTaskApi";
+import { trainerWorkoutProgramApi } from "@/store/redux/trainer/services/trainerWorkoutProgramApi";
+import { clearAllChatCaches } from "@/utils/chatCache";
+import { baseQueryWithReauth } from "@/store/redux/utils/baseQueryWithReauth";
 
 
 // Token storage keys
@@ -50,65 +61,6 @@ export const removeTokens = async () => {
   }
 };
 
-// Base query with auth header and credentials
-const baseQuery = fetchBaseQuery({
-  baseUrl: API_URL,
-  credentials: 'include', // Important for cookies
-  prepareHeaders: (headers, { getState }) => {
-    const token = getState()?.userAuth?.accessToken;
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-    return headers;
-  },
-});
-
-// Base query with automatic token refresh on 401
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions);
-
-  // If we get a 401 error, try to refresh the token
-  if (result?.error?.status === 401) {
-    console.log('401 detected, attempting token refresh...');
-    
-    // Get refresh token from secure storage
-    const { refreshToken } = await getTokens();
-    
-    if (refreshToken) {
-      // Try to refresh the token
-      const refreshResult = await baseQuery(
-        {
-          url: '/user/auth/refresh',
-          method: 'POST',
-          body: { refreshToken },
-        },
-        api,
-        extraOptions
-      );
-
-      if (refreshResult?.data?.accessToken) {
-        // Store the new token
-        await saveTokens(refreshResult.data.accessToken, null);
-        api.dispatch(setCredentials({ accessToken: refreshResult.data.accessToken }));
-        
-        // Retry the original query with new token
-        result = await baseQuery(args, api, extraOptions);
-      } else {
-        // Refresh failed, logout user
-        console.log('Token refresh failed, logging out...');
-        await removeTokens();
-        api.dispatch(clearCredentials());
-      }
-    } else {
-      // No refresh token, logout user
-      console.log('No refresh token found, logging out...');
-      await removeTokens();
-      api.dispatch(clearCredentials());
-    }
-  }
-
-  return result;
-};
 
 export const userAuthApi = createApi({
   reducerPath: "userAuthApi",
@@ -215,11 +167,28 @@ export const userAuthApi = createApi({
         try {
           await queryFulfilled;
           await removeTokens();
+          
+          // Clear AsyncStorage chat caches
+          await clearAllChatCaches();
+          
           dispatch(clearCredentials());
-          // Reset all API states
+          
+          // Reset ALL API states to clear user-specific cached data
           dispatch(userAuthApi.util.resetApiState()); 
           dispatch(userAccountApi.util.resetApiState());
+          dispatch(userProgressApi.util.resetApiState());
+          dispatch(userPlanApi.util.resetApiState());
+          dispatch(userTaskApi.util.resetApiState());
+          dispatch(userTrainerApi.util.resetApiState());
+          dispatch(userWorkoutProgramApi.util.resetApiState());
           dispatch(chatApi.util.resetApiState());
+          dispatch(clientPlanApi.util.resetApiState());
+          dispatch(trainerClientApi.util.resetApiState());
+          dispatch(trainerPlanApi.util.resetApiState());
+          dispatch(trainerTaskApi.util.resetApiState());
+          dispatch(trainerWorkoutProgramApi.util.resetApiState());
+          
+          console.log('✅ All API caches cleared on logout');
         } catch (error) {
           console.error('Logout error:', error);
         }

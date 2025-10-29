@@ -1,51 +1,7 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { setCredentials, clearCredentials } from "../userAuthSlice";
-import * as SecureStore from 'expo-secure-store';
-import { API_URL } from "@/constants/Variables";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithReauth } from "../../utils/baseQueryWithReauth";
 
-// Reauth logic for token refresh
-const baseQueryWithReauth = async (args, api, extraOptions) => {
-  const baseQuery = fetchBaseQuery({
-    baseUrl: API_URL,
-    credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState()?.userAuth?.accessToken;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  });
 
-  let result = await baseQuery(args, api, extraOptions);
-
-  if (result?.error?.status === 401) {
-    // Try to refresh token
-    try {
-      const refreshToken = await SecureStore.getItemAsync('auth_refresh_token');
-      if (refreshToken) {
-        const refreshResult = await baseQuery({
-          url: '/user/auth/refresh',
-          method: 'POST',
-          body: { refreshToken }
-        }, api, extraOptions);
-
-        if (refreshResult?.data?.accessToken) {
-          await SecureStore.setItemAsync('auth_access_token', refreshResult.data.accessToken);
-          api.dispatch(setCredentials({ accessToken: refreshResult.data.accessToken }));
-          result = await baseQuery(args, api, extraOptions);
-        } else {
-          api.dispatch(clearCredentials());
-        }
-      } else {
-        api.dispatch(clearCredentials());
-      }
-    } catch (e) {
-      api.dispatch(clearCredentials());
-    }
-  }
-  return result;
-};
 
 export const userProgressApi = createApi({
   reducerPath: "userProgressApi",
@@ -56,7 +12,13 @@ export const userProgressApi = createApi({
     getProgressPhotos: build.query({
       query: () => `/user/progress/photos`,
       transformResponse: (response) => response?.data || { currentWeek: 1, weeklyPhotos: [] },
-      providesTags: ["ProgressPhotos"],
+      providesTags: (result, error, arg) => [
+        { type: "ProgressPhotos", id: "LIST" }
+      ],
+      // Make cache user-specific by serializing with user ID
+      serializeQueryArgs: ({ queryArgs, endpointName }) => {
+        return endpointName; // Cache per endpoint, will be cleared on logout
+      },
     }),
 
     // Upload progress photo for current week
@@ -78,6 +40,24 @@ export const userProgressApi = createApi({
         };
       },
       invalidatesTags: ["ProgressPhotos"],
+      // Optimistic update for immediate UI feedback
+      async onQueryStarted({ photo, type }, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          // Update cache with full progress data from response
+          if (data?.data) {
+            dispatch(
+              userProgressApi.util.updateQueryData('getProgressPhotos', undefined, (draft) => {
+                // Update with fresh data from backend
+                draft.currentWeek = data.data.currentWeek;
+                draft.weeklyPhotos = data.data.weeklyPhotos;
+              })
+            );
+          }
+        } catch (error) {
+          console.error('Upload photo cache update error:', error);
+        }
+      },
     }),
 
     // Delete progress photo (only current week)
@@ -87,6 +67,22 @@ export const userProgressApi = createApi({
         method: 'DELETE',
       }),
       invalidatesTags: ["ProgressPhotos"],
+      async onQueryStarted(photoId, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          // Update cache with fresh data
+          if (data?.data) {
+            dispatch(
+              userProgressApi.util.updateQueryData('getProgressPhotos', undefined, (draft) => {
+                draft.currentWeek = data.data.currentWeek;
+                draft.weeklyPhotos = data.data.weeklyPhotos;
+              })
+            );
+          }
+        } catch (error) {
+          console.error('Delete photo cache update error:', error);
+        }
+      },
     }),
 
     // Move to next week (locks current week photos)
@@ -96,6 +92,22 @@ export const userProgressApi = createApi({
         method: 'POST',
       }),
       invalidatesTags: ["ProgressPhotos"],
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          // Update cache with new week data
+          if (data?.data) {
+            dispatch(
+              userProgressApi.util.updateQueryData('getProgressPhotos', undefined, (draft) => {
+                draft.currentWeek = data.data.currentWeek;
+                draft.weeklyPhotos = data.data.weeklyPhotos;
+              })
+            );
+          }
+        } catch (error) {
+          console.error('Move to next week cache update error:', error);
+        }
+      },
     }),
   }),
 });

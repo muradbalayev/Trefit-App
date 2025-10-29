@@ -25,7 +25,12 @@
       },
       "softwareKeyboardLayoutMode": "pan",
       "package": "com.muradbalayev.trefit",
-      "permissions": ["RECEIVE_BOOT_COMPLETED", "VIBRATE", "WAKE_LOCK"],
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "POST_NOTIFICATIONS"
+      ],
       "useNextNotificationsApi": true,
       "enableDangerousExperimentalLeanBuilds": false,
       "jsEngine": "hermes"

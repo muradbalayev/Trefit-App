@@ -10,6 +10,21 @@ import Section from "@/components/common/Section";
 import AppText from "@/components/ui/Text";
 import { useGetChatWithUserQuery, useGetChatMessagesQuery } from "@/store/redux/chat/services/chatApi";
 import { useSocket } from "@/contexts/SocketContext";
+import { getCachedMessages, addMessageToCache } from "@/utils/chatCache";
+
+// Skeleton loader for messages
+const MessageSkeleton = memo(() => (
+  <View style={styles.skeletonContainer}>
+    {[1, 2, 3].map((i) => (
+      <View key={i} style={[
+        styles.skeletonMessage,
+        i % 2 === 0 ? styles.skeletonRight : styles.skeletonLeft
+      ]}>
+        <View style={styles.skeletonBubble} />
+      </View>
+    ))}
+  </View>
+));
 
 // Memoized message item component (outside main component)
 const MessageItem = memo(({ msg, isMyMessage, showDateSeparator, formatDate, formatTime }) => (
@@ -67,6 +82,8 @@ const TrainerChatMessagesScreen = ({ route }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [realtimeMessages, setRealtimeMessages] = useState([]);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [cachedMessages, setCachedMessages] = useState([]);
+  const [showingCache, setShowingCache] = useState(false);
   const flatListRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   
@@ -92,6 +109,28 @@ const TrainerChatMessagesScreen = ({ route }) => {
     { chatId: chat?._id }, 
     { skip: !chat?._id }
   );
+  
+  // Load cached messages on mount
+  useEffect(() => {
+    const loadCachedMessages = async () => {
+      if (chat?._id) {
+        const cached = await getCachedMessages(chat._id);
+        if (cached && cached.length > 0) {
+          setCachedMessages(cached);
+          setShowingCache(true);
+          console.log(`📦 Trainer: Showing ${cached.length} cached messages`);
+        }
+      }
+    };
+    loadCachedMessages();
+  }, [chat?._id]);
+  
+  // Hide cache indicator when API data arrives
+  useEffect(() => {
+    if (messagesData && messagesData.length > 0) {
+      setShowingCache(false);
+    }
+  }, [messagesData]);
 
   // Socket.IO Effects - MUST be before any conditional returns
   useEffect(() => {
@@ -103,6 +142,11 @@ const TrainerChatMessagesScreen = ({ route }) => {
     const handleNewMessage = (data) => {
       console.log('📨 Trainer: New message received:', data);
       const { message: newMessage } = data;
+      
+      // Add to cache
+      if (chat?._id) {
+        addMessageToCache(chat._id, newMessage);
+      }
       
       // Add message to realtime list (remove temp message if exists)
       setRealtimeMessages(prev => {
@@ -173,7 +217,12 @@ const TrainerChatMessagesScreen = ({ route }) => {
   // Helper functions - defined BEFORE conditional returns
   const apiMessages = messagesData || [];
   
-  const mergedMessages = [...apiMessages, ...realtimeMessages];
+  // Merge cached, API, and realtime messages
+  const messagesToMerge = showingCache && !messagesData 
+    ? [...cachedMessages, ...realtimeMessages]
+    : [...apiMessages, ...realtimeMessages];
+    
+  const mergedMessages = messagesToMerge;
   const uniqueMessages = mergedMessages.reduce((acc, current) => {
     const existingIndex = acc.findIndex(msg => msg._id === current._id);
     if (existingIndex === -1) {
@@ -294,8 +343,8 @@ const TrainerChatMessagesScreen = ({ route }) => {
   const isLoading = chatLoading || messagesLoading;
   const hasError = chatError || messagesError;
 
-  // Render loading state
-  if (isLoading) {
+  // Render loading state - only if no cached data
+  if (isLoading && cachedMessages.length === 0) {
     return <Loading />;
   }
 
@@ -353,16 +402,26 @@ const TrainerChatMessagesScreen = ({ route }) => {
             updateCellsBatchingPeriod={50}
             initialNumToRender={15}
             windowSize={10}
+            ListHeaderComponent={() => (
+              showingCache && messagesLoading ? (
+                <View style={styles.loadingHeader}>
+                  <ActivityIndicator size="small" color={Colors.BRAND} />
+                  <AppText style={styles.loadingText}>Loading latest messages...</AppText>
+                </View>
+              ) : null
+            )}
             ListEmptyComponent={() => (
-              <View style={styles.emptyContainer}>
-                <Feather name="message-circle" size={64} color={Colors.TEXT_SECONDARY} />
-                <AppText style={styles.emptyText}>
-                  No messages yet
-                </AppText>
-                <AppText style={styles.emptySubtext}>
-                  Start the conversation with {actualClientName}
-                </AppText>
-              </View>
+              messagesLoading && cachedMessages.length === 0 ? (
+                <MessageSkeleton />
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Feather name="message-circle" size={48} color={Colors.TEXT_SECONDARY} />
+                  <AppText style={styles.emptyText}>No messages yet</AppText>
+                  <AppText style={styles.emptySubtext}>
+                    Start the conversation
+                  </AppText>
+                </View>
+              )
             )}
           />
 
@@ -599,6 +658,41 @@ const styles = StyleSheet.create({
   },
   sendButtonInactive: {
     backgroundColor: Colors.CARD,
+  },
+  // Skeleton styles
+  skeletonContainer: {
+    padding: 16,
+    gap: 16,
+  },
+  skeletonMessage: {
+    flexDirection: 'row',
+  },
+  skeletonLeft: {
+    justifyContent: 'flex-start',
+  },
+  skeletonRight: {
+    justifyContent: 'flex-end',
+  },
+  skeletonBubble: {
+    width: '70%',
+    height: 60,
+    backgroundColor: Colors.CARD,
+    borderRadius: 16,
+    opacity: 0.5,
+  },
+  loadingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    backgroundColor: Colors.SECONDARY,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  loadingText: {
+    fontSize: 12,
+    color: Colors.TEXT_SECONDARY,
   },
 });
 

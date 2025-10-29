@@ -27,14 +27,14 @@ const QuickStatsCard = ({ plan }) => {
         : '--',
       color: Colors.SUCCESS,
     },
-    {
-      icon: 'clock',
-      label: 'Started',
-      value: enrolledDate 
-        ? enrolledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        : '--',
-      color: Colors.WARNING,
-    },
+    // {
+    //   icon: 'clock',
+    //   label: 'Started',
+    //   value: enrolledDate 
+    //     ? enrolledDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    //     : '--',
+    //   color: Colors.WARNING,
+    // },
   ];
 
   return (
@@ -94,6 +94,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     color: Colors.TEXT,
+    textAlign: 'center',
     marginBottom: 4,
   },
   statLabel: {
