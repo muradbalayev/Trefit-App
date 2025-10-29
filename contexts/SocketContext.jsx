@@ -22,6 +22,9 @@ export const SocketProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineUsers, setOnlineUsers] = useState(new Set());
   
+  // Global event emitter for cross-component communication
+  const [lastMessage, setLastMessage] = useState(null);
+  
   // Reconnection state
   const [isReconnecting, setIsReconnecting] = useState(false);
   const reconnectAttempts = useRef(0);
@@ -79,6 +82,41 @@ export const SocketProvider = ({ children }) => {
 
       newSocket.on('error', (error) => {
         console.error('⚠️ Socket error:', error.message);
+      });
+
+      // Global new_message listener - broadcasts to all components
+      newSocket.on('new_message', (data) => {
+        const timestamp = Date.now();
+        
+        console.log('🌐 SocketContext: Raw data from backend', {
+          messageId: data.message?._id,
+          senderField: data.message?.sender,
+          senderType: typeof data.message?.sender,
+          timestamp
+        });
+        
+        console.log('🌐 SocketContext: Global new_message event', {
+          messageId: data.message?._id,
+          chatId: data.message?.chat,
+          senderId: data.message?.sender?._id || data.message?.sender,
+          senderName: data.message?.sender?.name,
+          content: data.message?.content?.substring(0, 50)
+        });
+        
+        // CRITICAL: Create completely new object to trigger React re-render
+        // Use timestamp + messageId as unique key
+        const broadcastMessage = {
+          ...data.message,
+          _timestamp: timestamp,
+          _uniqueKey: `${data.message?._id}_${timestamp}`
+        };
+        
+        console.log('📤 SocketContext: Broadcasting message', {
+          uniqueKey: broadcastMessage._uniqueKey,
+          senderId: broadcastMessage.sender?._id || broadcastMessage.sender
+        });
+        
+        setLastMessage(broadcastMessage);
       });
 
       setSocket(newSocket);
@@ -170,6 +208,7 @@ export const SocketProvider = ({ children }) => {
     isConnected,
     isReconnecting,
     onlineUsers,
+    lastMessage, // Global message broadcast
     
     // Helper functions
     joinChat,

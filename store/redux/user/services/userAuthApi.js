@@ -14,6 +14,7 @@ import { trainerPlanApi } from "@/store/redux/trainer/services/trainerPlanApi";
 import { trainerTaskApi } from "@/store/redux/trainer/services/trainerTaskApi";
 import { trainerWorkoutProgramApi } from "@/store/redux/trainer/services/trainerWorkoutProgramApi";
 import { clearAllChatCaches } from "@/utils/chatCache";
+import { clearCachedPushToken } from "@/utils/notificationManager";
 import { baseQueryWithReauth } from "@/store/redux/utils/baseQueryWithReauth";
 
 
@@ -171,6 +172,9 @@ export const userAuthApi = createApi({
           // Clear AsyncStorage chat caches
           await clearAllChatCaches();
           
+          // Clear cached push token
+          await clearCachedPushToken();
+          
           dispatch(clearCredentials());
           
           // Reset ALL API states to clear user-specific cached data
@@ -199,6 +203,19 @@ export const userAuthApi = createApi({
       transformResponse: (response) => response?.user,
       providesTags: ['User'],
     }),
+    savePushToken: build.mutation({
+      query: (expoPushToken) => ({
+        url: "/user/auth/push-token",
+        method: "POST",
+        body: { expoPushToken },
+      }),
+    }),
+    removePushToken: build.mutation({
+      query: () => ({
+        url: "/user/auth/push-token",
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -212,4 +229,6 @@ export const {
   useGetProfileQuery,
   useResetPasswordMutation,
   useForgotPasswordMutation,
+  useSavePushTokenMutation,
+  useRemovePushTokenMutation,
 } = userAuthApi;

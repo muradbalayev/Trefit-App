@@ -1,6 +1,8 @@
 import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Constants
 const ANDROID_CHANNEL_ID = 'trefit-chat-messages';
@@ -62,16 +64,27 @@ export const requestNotificationPermissions = async () => {
     // Configure Android notification channel
     if (Platform.OS === 'android' && Notifications.setNotificationChannelAsync) {
       try {
+        // Delete old channel if exists (to reset settings)
+        try {
+          await Notifications.deleteNotificationChannelAsync(ANDROID_CHANNEL_ID);
+        } catch (e) {
+          // Channel might not exist, ignore
+        }
+        
+        // Create fresh channel
         await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
           name: ANDROID_CHANNEL_NAME,
-          importance: Notifications.AndroidImportance?.HIGH || 4,
+          importance: Notifications.AndroidImportance?.MAX || 5, // MAX instead of HIGH
           vibrationPattern: VIBRATION_PATTERN,
           lightColor: '#C0FF00',
           sound: NOTIFICATION_SOUND,
           enableVibrate: true,
           showBadge: true,
+          enableLights: true,
+          lockscreenVisibility: Notifications.AndroidNotificationVisibility?.PUBLIC || 1,
+          bypassDnd: false,
         });
-        console.log('✅ Android notification channel created');
+        console.log('✅ Android notification channel created with MAX importance');
       } catch (channelError) {
         console.warn('⚠️ Could not create notification channel:', channelError.message);
       }
@@ -81,6 +94,59 @@ export const requestNotificationPermissions = async () => {
   } catch (error) {
     console.error('❌ Error requesting notification permissions:', error);
     return false;
+  }
+};
+
+/**
+ * Get Expo Push Token
+ */
+export const getExpoPushToken = async () => {
+  if (isExpoGo) {
+    console.log('⏭️ Expo Go - push token not available');
+    return null;
+  }
+
+  if (!Device.isDevice) {
+    console.log('⏭️ Not a physical device - push token not available');
+    return null;
+  }
+
+  try {
+    // Check if we have a cached token
+    const cachedToken = await AsyncStorage.getItem('expoPushToken');
+    if (cachedToken) {
+      console.log('✅ Using cached push token');
+      return cachedToken;
+    }
+
+    // Get new token
+    const { data: token } = await Notifications.getExpoPushTokenAsync({
+      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    });
+
+    if (token) {
+      // Cache the token
+      await AsyncStorage.setItem('expoPushToken', token);
+      console.log('✅ Expo push token obtained:', token.substring(0, 30) + '...');
+      return token;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('❌ Error getting push token:', error);
+    return null;
+  }
+};
+
+/**
+ * Clear cached push token
+ */
+export const clearCachedPushToken = async () => {
+  try {
+    await AsyncStorage.removeItem('expoPushToken');
+    console.log('✅ Cached push token cleared');
+  } catch (error) {
+    console.error('❌ Error clearing push token:', error);
   }
 };
 
@@ -112,7 +178,11 @@ export const showChatNotification = async ({
       return;
     }
 
+    // Generate unique identifier for this notification
+    const notificationIdentifier = `chat_${chatId}_${Date.now()}`;
+
     const notificationConfig = {
+      identifier: notificationIdentifier,
       content: {
         title: senderName,
         body: message.length > 100 ? message.substring(0, 100) + '...' : message,
@@ -125,6 +195,8 @@ export const showChatNotification = async ({
         },
         sound: NOTIFICATION_SOUND,
         priority: Notifications.AndroidNotificationPriority?.HIGH || 'high',
+        autoDismiss: true, // Auto dismiss after tap
+        sticky: false, // Don't make it persistent
       },
       trigger: null, // Show immediately
     };
@@ -135,11 +207,18 @@ export const showChatNotification = async ({
       notificationConfig.content.vibrate = VIBRATION_PATTERN;
     }
 
-    await Notifications.scheduleNotificationAsync(notificationConfig);
+    const notificationId = await Notifications.scheduleNotificationAsync(notificationConfig);
 
-    console.log('📬 Chat notification shown:', senderName);
+    console.log('📬 Chat notification shown:', {
+      senderName,
+      notificationId,
+      identifier: notificationIdentifier
+    });
+    
+    return notificationId;
   } catch (error) {
     console.error('❌ Error showing notification:', error.message);
+    return null;
   }
 };
 

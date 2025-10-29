@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from "react-native";
+import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, AppState } from "react-native";
 import { useSelector } from "react-redux";
 import { useNavigate } from "@/hooks/useNavigation";
 import Colors from "@/constants/Colors";
@@ -222,6 +222,15 @@ const ChatMessagesScreen = ({ route }) => {
       console.log('📨 New message received:', data);
       const { message: newMessage } = data;
       
+      // CRITICAL: Only process messages for THIS chat
+      const messageChatId = newMessage.chat?._id || newMessage.chat;
+      const currentChatId = chat?._id;
+      
+      if (messageChatId !== currentChatId) {
+        console.log('⏭️ Message for different chat, skipping');
+        return;
+      }
+      
       // Add to cache
       if (chat?._id) {
         addMessageToCache(chat._id, newMessage);
@@ -235,8 +244,10 @@ const ChatMessagesScreen = ({ route }) => {
         // Check if message already exists
         const exists = filtered.some(msg => msg._id === newMessage._id);
         if (!exists) {
+          console.log('✅ Adding new message to realtime list');
           return [...filtered, newMessage];
         }
+        console.log('⏭️ Message already exists, skipping');
         return filtered;
       });
       
@@ -296,6 +307,20 @@ const ChatMessagesScreen = ({ route }) => {
       setRealtimeMessages([]);
     };
   }, []);
+
+  // Refetch messages when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && chat?._id) {
+        console.log('📱 App came to foreground - refetching messages');
+        refetch();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [chat?._id, refetch]);
 
   // Handle typing indicators
   const handleTyping = (text) => {

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert } from "react-native";
+import { View, StyleSheet, FlatList, Pressable, TextInput, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, AppState } from "react-native";
 import { useSelector } from "react-redux";
 import { useNavigate } from "@/hooks/useNavigation";
 import Colors from "@/constants/Colors";
@@ -143,6 +143,15 @@ const TrainerChatMessagesScreen = ({ route }) => {
       console.log('📨 Trainer: New message received:', data);
       const { message: newMessage } = data;
       
+      // CRITICAL: Only process messages for THIS chat
+      const messageChatId = newMessage.chat?._id || newMessage.chat;
+      const currentChatId = chat?._id;
+      
+      if (messageChatId !== currentChatId) {
+        console.log('⏭️ Trainer: Message for different chat, skipping');
+        return;
+      }
+      
       // Add to cache
       if (chat?._id) {
         addMessageToCache(chat._id, newMessage);
@@ -153,8 +162,10 @@ const TrainerChatMessagesScreen = ({ route }) => {
         const filtered = prev.filter(msg => !msg._id.toString().startsWith('temp-'));
         const exists = filtered.some(msg => msg._id === newMessage._id);
         if (!exists) {
+          console.log('✅ Trainer: Adding new message to realtime list');
           return [...filtered, newMessage];
         }
+        console.log('⏭️ Trainer: Message already exists, skipping');
         return filtered;
       });
       
@@ -213,6 +224,20 @@ const TrainerChatMessagesScreen = ({ route }) => {
       setRealtimeMessages([]);
     };
   }, []);
+
+  // Refetch messages when app comes to foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active' && chat?._id) {
+        console.log('📱 Trainer: App came to foreground - refetching messages');
+        refetch();
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [chat?._id, refetch]);
 
   // Helper functions - defined BEFORE conditional returns
   const apiMessages = messagesData || [];

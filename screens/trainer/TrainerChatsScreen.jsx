@@ -22,7 +22,7 @@ const TrainerChatsScreen = () => {
   const [showingCache, setShowingCache] = useState(false);
   
   // Socket.IO
-  const { socket, on, off } = useSocket();
+  const { socket, lastMessage, on, off } = useSocket();
   
   // Get trainer's chats from API (same endpoint, backend checks role)
   const { data: chatsData, isLoading, error, refetch } = useGetChatsQuery();
@@ -54,32 +54,32 @@ const TrainerChatsScreen = () => {
     setRefreshing(false);
   };
   
-  // Listen for new messages to update last message
+  // Listen for new messages via global lastMessage state
   useEffect(() => {
-    if (!socket) return;
+    if (!lastMessage) return;
     
-    const handleNewMessage = (data) => {
-      const { message } = data;
-      
-      // Update cache
-      updateChatLastMessage(message.chat, message.content, message.createdAt);
-      
-      // Update last message for this chat
-      setRealtimeChats(prev => ({
-        ...prev,
-        [message.chat]: {
-          lastMessage: message.content,
-          lastMessageTime: message.createdAt
-        }
-      }));
-    };
+    console.log('📨 TrainerChatsScreen: New message from global state', {
+      chatId: lastMessage.chat,
+      content: lastMessage.content?.substring(0, 30)
+    });
     
-    on('new_message', handleNewMessage);
+    // Get chat ID (handle both string and object)
+    const chatId = lastMessage.chat?._id || lastMessage.chat;
     
-    return () => {
-      off('new_message', handleNewMessage);
-    };
-  }, [socket, on, off]);
+    // Update cache
+    updateChatLastMessage(chatId, lastMessage.content, lastMessage.createdAt);
+    
+    // Update last message for this chat
+    setRealtimeChats(prev => ({
+      ...prev,
+      [chatId]: {
+        lastMessage: lastMessage.content,
+        lastMessageTime: lastMessage.createdAt
+      }
+    }));
+    
+    console.log('✅ TrainerChatsScreen: Chat list updated');
+  }, [lastMessage]);
   
   // Loading state
   if (isLoading) return <Loading />;
