@@ -55,8 +55,8 @@ const styles = StyleSheet.create({
         zIndex: 1000,
     },
     logo: {
-      width: 120,
-      height: 40,
+      width:50,
+      height: 50,
     },
     titleContainer: {
         flex: 1,

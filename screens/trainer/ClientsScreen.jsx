@@ -19,14 +19,16 @@ import AppText from "@/components/ui/Text";
 import { useGetMyClientsQuery } from "@/store/redux/trainer/services/trainerClientApi";
 import { useGetMyPlansQuery } from "@/store/redux/trainer/services/trainerPlanApi";
 import { getAvatarUrl } from "@/constants/Paths";
-import HorizontalFilter from "@/components/common/HorizontalFilter";
+import FilterModal from "@/components/common/FilterModal";
 
 const ClientsScreen = () => {
   const { navigate } = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedPlanId, setSelectedPlanId] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
   const [page, setPage] = useState(1);
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -54,16 +56,22 @@ const ClientsScreen = () => {
     page,
     limit: 10,
     planId: selectedPlanId === "all" ? undefined : selectedPlanId,
+    status: selectedStatus === "all" ? undefined : selectedStatus,
     search: debouncedSearch || undefined,
   });
-  console.log(clientsResponse);
 
   // Get real data
   const clients = clientsResponse?.data || [];
   const plans = plansResponse?.data || [];
   const totalClients = clientsResponse?.pagination?.total || 0;
-  console.log(clients);
-  // Filter plans for dropdown
+
+  // Filter options
+  const statusFilterOptions = [
+    { label: "All Status", value: "all" },
+    { label: "Active", value: "active" },
+    { label: "Completed", value: "completed" },
+  ];
+
   const planFilterOptions = [
     { label: "All Plans", value: "all" },
     ...plans.map((plan) => ({
@@ -207,11 +215,51 @@ const ClientsScreen = () => {
         </View>
       </View>
 
-      {/* Plan Filter */}
-      <HorizontalFilter
-        filters={planFilterOptions}
-        selectedValue={selectedPlanId}
-        onSelect={setSelectedPlanId}
+      {/* Filter Button */}
+      <Pressable
+        style={styles.filterButton}
+        onPress={() => setShowFilterModal(true)}
+      >
+        <Feather name="filter" size={18} color={Colors.BRAND} />
+        <AppText style={styles.filterButtonText}>Filters</AppText>
+        {(selectedStatus !== "all" || selectedPlanId !== "all") && (
+          <View style={styles.filterBadge}>
+            <AppText style={styles.filterBadgeText}>
+              {(selectedStatus !== "all" ? 1 : 0) + (selectedPlanId !== "all" ? 1 : 0)}
+            </AppText>
+          </View>
+        )}
+      </Pressable>
+
+      {/* Filter Modal */}
+      <FilterModal
+        visible={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        filterGroups={[
+          {
+            label: "Status",
+            options: statusFilterOptions.map((opt) => ({
+              label: opt.label,
+              value: opt.value,
+              active: selectedStatus === opt.value,
+              onPress: (value) => setSelectedStatus(value),
+            })),
+          },
+          {
+            label: "Plan",
+            options: planFilterOptions.map((opt) => ({
+              label: opt.label,
+              value: opt.value,
+              active: selectedPlanId === opt.value,
+              onPress: (value) => setSelectedPlanId(value),
+            })),
+          },
+        ]}
+        onReset={() => {
+          setSelectedStatus("all");
+          setSelectedPlanId("all");
+        }}
+        onApply={() => setShowFilterModal(false)}
       />
 
       {/* Clients List */}
@@ -284,7 +332,39 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.TEXT,
   },
+  filterButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: Colors.CARD,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.BORDER,
+    // marginBottom: 16,
+  },
+  filterButtonText: {
+    fontSize: 14,
+    color: Colors.BRAND,
+    fontWeight: "600",
+  },
+  filterBadge: {
+    backgroundColor: Colors.BRAND,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: "auto",
+  },
+  filterBadgeText: {
+    fontSize: 11,
+    color: Colors.TEXT_BLACK,
+    fontWeight: "700",
+  },
   clientsList: {
+    paddingTop: 30,
     paddingBottom: 100,
   },
   clientCard: {

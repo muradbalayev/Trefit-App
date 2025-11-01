@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "@/hooks/useNavigation";
 import Colors from "@/constants/Colors";
 import Feather from "@expo/vector-icons/Feather";
-import { CustomScreen, SuccessModal } from "@/components/common";
+import { CustomScreen, Loading, SuccessModal } from "@/components/common";
 import AppText from "@/components/ui/Text";
 import { useGetAccountQuery } from "@/store/redux/user/services/userAccountApi";
 import { useGetTrainerStatsQuery } from "@/store/redux/trainer/services/trainerStatsApi";
@@ -25,6 +25,7 @@ const TrainerHomeScreen = () => {
     data: user,
     refetch: refetchUser,
     isFetching,
+    isLoading
   } = useGetAccountQuery(undefined, { skip: !isAuthenticated });
   const { 
     data: statsData, 
@@ -56,6 +57,8 @@ const TrainerHomeScreen = () => {
       enrollmentId: client.enrollmentId,
     });
   };
+
+  if (isLoading) return <Loading />;
 
   return (
     <CustomScreen>
@@ -95,7 +98,7 @@ const TrainerHomeScreen = () => {
           </View>
         </View>
         <View style={styles.container}>
-          <StatsOverview stats={stats} onNavigate={navigate} />
+          <StatsOverview stats={stats} onNavigate={navigate} isLoading={statsLoading} />
 
           {/* Quick Actions */}
           <View style={styles.section}>

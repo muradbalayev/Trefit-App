@@ -31,7 +31,6 @@ const RevenueAnalyticsScreen = () => {
     limit: 1000,
   });
 
-  console.log(clientsData)
   const clients = clientsData || [];
 
   // Time filter options

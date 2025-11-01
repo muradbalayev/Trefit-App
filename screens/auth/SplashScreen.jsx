@@ -31,7 +31,7 @@ const SplashScreen = () => {
   return (
     <CustomScreen>
       <View style={styles.root}>
-        <Image style={styles.logo} source={Images.logo} />
+        <Image style={styles.logo} source={Images.splashIcon} />
       </View>
     </CustomScreen>
   );

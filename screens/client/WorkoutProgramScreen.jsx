@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     paddingBottom: 80,
   },
   personalizedBanner: {

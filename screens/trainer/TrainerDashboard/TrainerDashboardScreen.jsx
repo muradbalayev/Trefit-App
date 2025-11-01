@@ -362,12 +362,16 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 24,
+    flex: 1,
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: 12,
   },
   sectionHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    // marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,

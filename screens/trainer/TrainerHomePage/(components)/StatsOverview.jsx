@@ -22,7 +22,15 @@ const formatCurrency = (value) => {
   return `$${amount.toLocaleString()}`;
 };
 
-const StatsOverview = ({ stats = {}, onNavigate }) => {
+const StatCardSkeleton = () => (
+  <View style={[styles.card, styles.skeletonCard]}>
+    <View style={[styles.iconBadge, styles.skeletonIconBadge]} />
+    <View style={[styles.skeletonValue]} />
+    <View style={[styles.skeletonLabel]} />
+  </View>
+);
+
+const StatsOverview = ({ stats = {}, onNavigate, isLoading = false }) => {
   const goTo = useCallback(
     (route) => {
       if (route && typeof onNavigate === "function") {
@@ -98,41 +106,50 @@ const StatsOverview = ({ stats = {}, onNavigate }) => {
       </View>
 
       <View style={styles.grid}>
-        {cards.map((card) => (
-          <Pressable
-            key={card.key}
-            style={[
-              styles.card,
-              { borderColor: card.borderColor },
-              !card.onPress && styles.cardDisabled,
-            ]}
-            onPress={card.onPress}
-            disabled={!card.onPress}
-          >
-            <View style={[styles.iconBadge, { backgroundColor: card.iconBackground }]}>
-              <Feather name={card.icon} size={18} color={card.iconColor} />
-            </View>
-            <AppText font="Bold" style={styles.value}>
-              {card.value}
-            </AppText>
-            <AppText style={styles.label}>{card.label}</AppText>
-
-            {/* {card.caption ? (
-              <View style={styles.captionRow}>
-                {card.captionIcon ? (
-                  <Feather
-                    name={card.captionIcon}
-                    size={12}
-                    color={card.captionColor}
-                  />
-                ) : null}
-                <AppText style={[styles.caption, { color: card.captionColor }]}>
-                  {card.caption}
-                </AppText>
+        {isLoading ? (
+          <>
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+            <StatCardSkeleton />
+          </>
+        ) : (
+          cards.map((card) => (
+            <Pressable
+              key={card.key}
+              style={[
+                styles.card,
+                { borderColor: card.borderColor },
+                !card.onPress && styles.cardDisabled,
+              ]}
+              onPress={card.onPress}
+              disabled={!card.onPress}
+            >
+              <View style={[styles.iconBadge, { backgroundColor: card.iconBackground }]}>
+                <Feather name={card.icon} size={18} color={card.iconColor} />
               </View>
-            ) : null} */}
-          </Pressable>
-        ))}
+              <AppText font="Bold" style={styles.value}>
+                {card.value}
+              </AppText>
+              <AppText style={styles.label}>{card.label}</AppText>
+
+              {/* {card.caption ? (
+                <View style={styles.captionRow}>
+                  {card.captionIcon ? (
+                    <Feather
+                      name={card.captionIcon}
+                      size={12}
+                      color={card.captionColor}
+                    />
+                  ) : null}
+                  <AppText style={[styles.caption, { color: card.captionColor }]}>
+                    {card.caption}
+                  </AppText>
+                </View>
+              ) : null} */}
+            </Pressable>
+          ))
+        )}
       </View>
     </View>
   );
@@ -205,5 +222,23 @@ const styles = StyleSheet.create({
   },
   caption: {
     fontSize: 11,
+  },
+  skeletonCard: {
+    backgroundColor: Colors.CARD,
+  },
+  skeletonIconBadge: {
+    backgroundColor: Colors.BORDER,
+  },
+  skeletonValue: {
+    height: 28,
+    width: "70%",
+    backgroundColor: Colors.BORDER,
+    borderRadius: 6,
+  },
+  skeletonLabel: {
+    height: 12,
+    width: "50%",
+    backgroundColor: Colors.BORDER,
+    borderRadius: 4,
   },
 });
