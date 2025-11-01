@@ -17,7 +17,7 @@ import { useGetTrainerStatsQuery } from "@/store/redux/trainer/services/trainerS
 import { useGetDashboardClientsQuery } from "@/store/redux/trainer/services/trainerStatsApi";
 
 const TrainerDashboardScreen = () => {
-  const { goBack } = useNavigate();
+  const { goBack, navigate } = useNavigate();
   const [timeFilter, setTimeFilter] = useState("month"); // week, month, year, all
   
   const {
@@ -84,9 +84,18 @@ const TrainerDashboardScreen = () => {
 
   const renderRevenueStats = () => (
     <View style={styles.section}>
-      <AppText font="Bold" style={styles.sectionTitle}>
-        Revenue
-      </AppText>
+      <View style={styles.sectionHeaderRow}>
+        <AppText font="Bold" style={styles.sectionTitle}>
+          Revenue
+        </AppText>
+        <Pressable
+          style={styles.viewDetailsButton}
+          onPress={() => navigate("RevenueAnalytics")}
+        >
+          <AppText style={styles.viewDetailsText}>View Details</AppText>
+          <Feather name="arrow-right" size={14} color={Colors.BRAND} />
+        </Pressable>
+      </View>
       <View style={styles.revenueCard}>
         <View style={styles.revenueHeader}>
           <View style={styles.revenueIcon}>
@@ -354,10 +363,29 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 18,
     color: Colors.TEXT,
-    marginBottom: 16,
+  },
+  viewDetailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Colors.SECONDARY,
+    borderRadius: 8,
+  },
+  viewDetailsText: {
+    fontSize: 12,
+    color: Colors.BRAND,
+    fontWeight: "600",
   },
   statsGrid: {
     flexDirection: "row",

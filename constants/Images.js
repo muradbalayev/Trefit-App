@@ -1,4 +1,4 @@
-import Logo from "assets/images/TrefitText1.png";
+import Logo from "assets/images/TrefitTransparent.png";
 import HomeBg from "assets/images/bg/home-bg2.jpg";
 
 

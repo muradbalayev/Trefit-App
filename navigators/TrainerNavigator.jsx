@@ -32,6 +32,7 @@ import ChangePasswordScreen from "@/screens/main/ProfilePage/ChangePasswordScree
 import ClientDashboardScreen from "@/screens/trainer/ClientDashboardScreen";
 import ClientProgressPhotosScreen from "@/screens/trainer/ClientProgressPhotos/ClientProgressPhotosScreen";
 import TrainerDashboardScreen from "@/screens/trainer/TrainerDashboard/TrainerDashboardScreen";
+import RevenueAnalyticsScreen from "@/screens/trainer/TrainerDashboard/(screens)/RevenueAnalyticsScreen";
 
 const Stack = createStackNavigator();
 
@@ -96,6 +97,7 @@ const TrainerNavigator = () => {
         <Stack.Screen name="ClientDashboard" component={ClientDashboardScreen} />
         <Stack.Screen name="ClientProgressPhotos" component={ClientProgressPhotosScreen} />
         <Stack.Screen name="TrainerDashboard" component={TrainerDashboardScreen} />
+        <Stack.Screen name="RevenueAnalytics" component={RevenueAnalyticsScreen} />
 
         {/* Chat Screens */}
         <Stack.Screen name="Chat" component={ChatScreen} />
