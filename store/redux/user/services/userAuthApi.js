@@ -93,6 +93,13 @@ export const userAuthApi = createApi({
         body: data, // { code }
       }),
     }),
+    resendVerification: build.mutation({
+      query: (data) => ({
+        url: "/user/auth/resend-verification",
+        method: "POST",
+        body: data, // { email }
+      }),
+    }),
     forgotPassword: build.mutation({
       query: (payload) => ({
         url: "/user/auth/forgot-password",
@@ -225,6 +232,7 @@ export const {
   useRegisterMutation,
   useRegisterTrainerMutation,
   useVerifyEmailMutation,
+  useResendVerificationMutation,
   useLoginMutation,
   useRefreshMutation,
   useLogoutMutation,

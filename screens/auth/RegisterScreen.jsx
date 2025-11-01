@@ -27,9 +27,8 @@ const RegisterScreen = () => {
     }
     try {
       const res = await register({ name, email, password, role }).unwrap()
-      Alert.alert('Verify your email', 'We have sent a verification link to your email. Please verify to continue.', [
-        { text: 'OK', onPress: () => navigation.navigate('Login') }
-      ])
+      // Navigate to email verification screen
+      navigation.navigate('EmailVerification', { email })
     } catch (e) {
       const msg = e?.data?.message || 'Registration failed. Please try again.'
       setErrorMsg(msg)

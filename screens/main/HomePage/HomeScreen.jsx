@@ -92,7 +92,7 @@ const HomeScreen = ({ route }) => {
         imageStyle={styles.backgroundImageStyle}
         resizeMode="cover"
       >
-        <View style={styles.overlay} />
+        <View style={styles.overlay}/>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}  refreshControl={
             <RefreshControl
               refreshing={isFetching}
@@ -144,7 +144,7 @@ const HomeScreen = ({ route }) => {
         <SuccessModal
           visible={showWarningModal}
           title="Warning"
-          message={warningMessage || 'Bu gün artıq check-in etmisiniz.'}
+          message={warningMessage || 'You have already checked in today.'}
           buttonText="Close"
           onClose={() => setShowWarningModal(false)}
           animationSource={Lotties.warningLottie}

@@ -1,14 +1,16 @@
 import React, { useState, useMemo } from 'react'
 import { View, StyleSheet, Pressable, Alert } from 'react-native'
-import { CustomScreen, Input } from '@/components/common'
+import { CustomScreen, Input, SuccessModal } from '@/components/common'
 import AppText from '@/components/ui/Text'
 import Colors from '@/constants/Colors'
+import Lotties from '@/constants/Lotties'
 import { useSetUsernameMutation } from '@/store/redux/user/services/userAccountApi'
 
 const SetUsernameScreen = () => {
   const [username, setUsername] = useState('')
   const [touched, setTouched] = useState(false)
   const [setUsernameReq, { isLoading }] = useSetUsernameMutation()
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const error = useMemo(() => {
     if (!touched) return ''
@@ -36,7 +38,7 @@ const SetUsernameScreen = () => {
     try {
       await setUsernameReq({ username }).unwrap()
       // After success, AppNavigator will re-render (account invalidated) and route to UserNavigator
-      Alert.alert('Success', 'Username set successfully.')
+      setShowSuccessModal(true)
     } catch (e) {
       const msg = e?.data?.message || 'Failed to set username. Try a different one.'
       Alert.alert('Error', msg)
@@ -72,6 +74,19 @@ const SetUsernameScreen = () => {
           <AppText font="SemiBold" style={styles.buttonText}>{isLoading ? 'Saving...' : 'Continue'}</AppText>
         </Pressable>
       </View>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        title="Username Set!"
+        message={`Your username @${username} has been set successfully.`}
+        subMessage="You can now start using the app."
+        buttonText="Let's Go"
+        onClose={() => setShowSuccessModal(false)}
+        animationSource={Lotties.success}
+        animationLoop={false}
+        animationAutoPlay={true}
+      />
     </CustomScreen>
   )
 }
