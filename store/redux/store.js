@@ -9,6 +9,7 @@ import { trainerPlanApi } from './trainer/services/trainerPlanApi';
 import { trainerClientApi as trainerClientAPIService } from './trainer/services/trainerClientApi';
 import { trainerWorkoutProgramApi } from './trainer/services/trainerWorkoutProgramApi';
 import { trainerTaskApi } from './trainer/services/trainerTaskApi';
+import { trainerStatsApi } from './trainer/services/trainerStatsApi';
 import { clientPlanApi } from './client/services/clientPlanApi';
 import { chatApi } from './chat/services/chatApi';
 import { userWorkoutProgramApi } from './user/services/userWorkoutProgramApi';
@@ -26,6 +27,7 @@ export const store = configureStore({
     [trainerClientAPIService.reducerPath]: trainerClientAPIService.reducer,
     [trainerWorkoutProgramApi.reducerPath]: trainerWorkoutProgramApi.reducer,
     [trainerTaskApi.reducerPath]: trainerTaskApi.reducer,
+    [trainerStatsApi.reducerPath]: trainerStatsApi.reducer,
     [clientPlanApi.reducerPath]: clientPlanApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer,
     [userWorkoutProgramApi.reducerPath]: userWorkoutProgramApi.reducer,
@@ -45,6 +47,7 @@ export const store = configureStore({
       trainerClientAPIService.middleware,
       trainerWorkoutProgramApi.middleware,
       trainerTaskApi.middleware,
+      trainerStatsApi.middleware,
       clientPlanApi.middleware,
       chatApi.middleware,
       userWorkoutProgramApi.middleware,

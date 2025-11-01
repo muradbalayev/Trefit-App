@@ -7,10 +7,10 @@ import {
   RefreshControl,
   ImageBackground,
 } from "react-native";
-import { CustomScreen } from "@/components/common";
-import AppText from "@/components/ui/Text";
+import { CustomScreen, SuccessModal } from "@/components/common";
 import Colors from "@/constants/Colors";
 import Images from "@/constants/Images";
+import Lotties from "@/constants/Lotties";
 import Header from "./(components)/Header";
 import OnboardSection from "./(components)/OnboardSection";
 import MyCoachSection from "./(components)/MyCoachSection";
@@ -45,6 +45,10 @@ const HomeScreen = ({ route }) => {
   }, [route?.params?.refresh, refetch]);
 
   const [dailyCheckIn, { isLoading: isCheckingIn }] = useDailyCheckInMutation();
+  const [showSuccessModal, setShowSuccessModal] = React.useState(false);
+  const [checkInResult, setCheckInResult] = React.useState(null);
+  const [showWarningModal, setShowWarningModal] = React.useState(false);
+  const [warningMessage, setWarningMessage] = React.useState('');
   const [updateWeight, { isLoading: isUpdatingWeight }] = useUpdateWeightMutation();
 
   const hasActivePlan = Boolean(user?.plan?.planId);
@@ -52,13 +56,19 @@ const HomeScreen = ({ route }) => {
   const handleCheckIn = async () => {
     try {
       const result = await dailyCheckIn().unwrap();
-      Alert.alert(
-        'Success!', 
-        `Check-in successful! 🔥\nStreak: ${result.streak} days\nPoints: +10`
-      );
+      setCheckInResult(result);
+      setShowSuccessModal(true);
+      refetch();
     } catch (error) {
       const message = error?.data?.message || 'Failed to check in';
-      Alert.alert('Info', message);
+      const normalized = message?.toString().toLowerCase() || '';
+
+      if (normalized.includes('already') || normalized.includes('artıq')) {
+        setWarningMessage(message);
+        setShowWarningModal(true);
+      } else {
+        Alert.alert('Info', message);
+      }
       console.error('Check-in error:', error);
     }
   };
@@ -120,6 +130,27 @@ const HomeScreen = ({ route }) => {
           )}
           </View>
         </ScrollView>
+        <SuccessModal
+          visible={showSuccessModal}
+          title="Check-in completed!"
+          message={`🔥 Streak: ${checkInResult?.streak ?? user?.streak ?? 0} gün`}
+          subMessage={`+${checkInResult?.pointsEarned ?? 10} xal qazandın! Belə davam et!`}
+          buttonText="Continue to grow"
+          onClose={() => setShowSuccessModal(false)}
+          animationSource={Lotties.fireStreak}
+          animationLoop={true}
+          animationStyle={styles.modalAnimation}
+        />
+        <SuccessModal
+          visible={showWarningModal}
+          title="Warning"
+          message={warningMessage || 'Bu gün artıq check-in etmisiniz.'}
+          buttonText="Close"
+          onClose={() => setShowWarningModal(false)}
+          animationSource={Lotties.warningLottie}
+          animationLoop={true}
+          animationStyle={styles.modalAnimation}
+        />
       </ImageBackground>
     </CustomScreen>
   );
@@ -149,6 +180,10 @@ const styles = StyleSheet.create({
   sections: {
     flex: 1,
     paddingBottom: 80,
+  },
+  modalAnimation: {
+    width: 180,
+    height: 180,
   },
   trainerName: {
     fontSize: 16,

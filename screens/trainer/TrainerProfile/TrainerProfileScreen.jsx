@@ -18,6 +18,7 @@ import {
   useUploadAvatarMutation,
 } from "@/store/redux/user/services/userAccountApi";
 import { useLogoutMutation } from "@/store/redux/user/services/userAuthApi";
+import { useGetTrainerStatsQuery } from "@/store/redux/trainer/services/trainerStatsApi";
 import { Feather } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import { useNavigate } from "@/hooks/useNavigation";
@@ -25,6 +26,7 @@ import { getAvatarUrl } from "@/constants/Paths";
 
 const TrainerProfileScreen = ({ navigation }) => {
   const { data: user, isFetching, isError, refetch } = useGetAccountQuery();
+  const { data: stats, isLoading: isLoadingStats } = useGetTrainerStatsQuery();
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const { navigate } = useNavigate();
 
@@ -202,7 +204,7 @@ const TrainerProfileScreen = ({ navigation }) => {
               <Feather name="users" size={20} color={Colors.BRAND} />
             </View>
             <AppText font="Bold" style={styles.statValue}>
-              2
+              {isLoadingStats ? "..." : stats?.overview?.activeClients || 0}
             </AppText>
             <AppText style={styles.statLabel}>Clients</AppText>
           </View>
@@ -212,30 +214,55 @@ const TrainerProfileScreen = ({ navigation }) => {
               <Feather name="file-text" size={20} color={Colors.BRAND} />
             </View>
             <AppText font="Bold" style={styles.statValue}>
-              1
+              {isLoadingStats ? "..." : stats?.overview?.activePlans || 0}
             </AppText>
             <AppText style={styles.statLabel}>Plans</AppText>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
-              <Feather name="star" size={20} color={Colors.BRAND} />
+              <Feather name="dollar-sign" size={20} color={Colors.BRAND} />
             </View>
             <AppText font="Bold" style={styles.statValue}>
-              5.0
+              {isLoadingStats ? "..." : `$${stats?.overview?.thisMonthRevenue || 0}`}
             </AppText>
-            <AppText style={styles.statLabel}>Rating</AppText>
+            <AppText style={styles.statLabel}>Revenue</AppText>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
-              <Feather name="calendar" size={20} color={Colors.BRAND} />
+              <Feather name="check-circle" size={20} color={Colors.BRAND} />
             </View>
             <AppText font="Bold" style={styles.statValue}>
-              {user?.joinedAt ? new Date(user.joinedAt).getFullYear() : "2024"}
+              {isLoadingStats ? "..." : stats?.tasks?.completed || 0}
             </AppText>
-            <AppText style={styles.statLabel}>Joined</AppText>
+            <AppText style={styles.statLabel}>Tasks</AppText>
           </View>
+        </View>
+
+        {/* Dashboard Buttons */}
+        <View style={styles.dashboardButtons}>
+          <Pressable
+            style={styles.dashboardButton}
+            onPress={() => navigate("ClientDashboard")}
+          >
+            <Feather name="users" size={18} color={Colors.BRAND} />
+            <AppText font="SemiBold" style={styles.dashboardButtonText}>
+              Clients Dashboard
+            </AppText>
+            <Feather name="arrow-right" size={16} color={Colors.BRAND} />
+          </Pressable>
+
+          <Pressable
+            style={styles.dashboardButton}
+            onPress={() => navigate("TrainerDashboard")}
+          >
+            <Feather name="bar-chart-2" size={18} color={Colors.BRAND} />
+            <AppText font="SemiBold" style={styles.dashboardButtonText}>
+              Analytics Dashboard
+            </AppText>
+            <Feather name="arrow-right" size={16} color={Colors.BRAND} />
+          </Pressable>
         </View>
 
         {/* Professional Info Section */}
@@ -568,7 +595,26 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: "row",
     gap: 8,
+    marginBottom: 16,
+  },
+  dashboardButtons: {
+    gap: 12,
     marginBottom: 24,
+  },
+  dashboardButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: Colors.CARD,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.BORDER,
+  },
+  dashboardButtonText: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.TEXT,
   },
   statCard: {
     flex: 1,

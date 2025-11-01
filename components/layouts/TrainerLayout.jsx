@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.BACKGROUND,
   },
   mainContainer: {
-    bottom: 20,
+    bottom: 0,
     width: "100%",
     position: "absolute",
     backgroundColor: "transparent",
@@ -149,9 +149,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     minHeight: 60,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     overflow: "hidden",
-    width: "90%",
+    // width: "90%",
     ...(Platform.OS === "ios"
       ? {
           shadowColor: "#000",

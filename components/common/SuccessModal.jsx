@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Modal, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import LottieView from 'lottie-react-native';
 import AppText from '@/components/ui/Text';
 import Colors from '@/constants/Colors';
 
@@ -16,18 +17,26 @@ import Colors from '@/constants/Colors';
  * @param {Function} onSecondaryPress - Secondary button action (optional)
  * @param {string} iconName - Feather icon name (default: "check-circle")
  * @param {string} iconColor - Icon color (default: Colors.SUCCESS)
+ * @param {object} animationSource - Optional Lottie animation source
+ * @param {boolean} animationLoop - Whether the Lottie animation should loop (default: true)
+ * @param {boolean} animationAutoPlay - Whether the animation should auto play (default: true)
+ * @param {object} animationStyle - Optional style overrides for the animation
  */
 const SuccessModal = ({
   visible,
   title,
   message,
   subMessage,
-  buttonText = 'Bağla',
+  buttonText = 'Close',
   onClose,
   secondaryButtonText,
   onSecondaryPress,
   iconName = 'check-circle',
   iconColor = Colors.SUCCESS,
+  animationSource,
+  animationLoop = true,
+  animationAutoPlay = true,
+  animationStyle,
 }) => {
   return (
     <Modal
@@ -39,7 +48,16 @@ const SuccessModal = ({
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalIconContainer}>
-            <Feather name={iconName} size={64} color={iconColor} />
+            {animationSource ? (
+              <LottieView
+                source={animationSource}
+                autoPlay={animationAutoPlay}
+                loop={animationLoop}
+                style={[styles.animation, animationStyle]}
+              />
+            ) : (
+              <Feather name={iconName} size={64} color={iconColor} />
+            )}
           </View>
           
           {title && (

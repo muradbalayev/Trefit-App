@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
     paddingHorizontal: 16,
     marginTop: 16,
-    marginBottom: 16,
+    // marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.BORDER,
   },

@@ -1,4 +1,4 @@
-// React Native Components
+ // React Native Components
 import React from 'react';
 import { Pressable, StyleSheet, View, Text, ViewStyle, TouchableOpacity } from 'react-native';
 // Constants
@@ -16,7 +16,7 @@ const ScreenHeader = ({ action, title, children, position = 'relative', actionBu
           <Feather name="arrow-left" size={24} color={Colors.TEXT} />
         </TouchableOpacity>
       </View>
-      <View style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: 'center', maxWidth: '80%' }}>
         {title && <AppText style={styles.title} font="Medium">{title}</AppText>}
       </View>
       <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     lineHeight: 33,
     color: Colors.TEXT,
+    textAlign: 'center',
   },
   backButton: {
     width: 40,

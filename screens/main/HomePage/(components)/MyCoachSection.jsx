@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, StyleSheet, Image, Pressable, ActivityIndicator } from 'react-native'
+import { View, StyleSheet, Image, Pressable } from 'react-native'
 import AppText from '@/components/ui/Text'
 import Colors from '@/constants/Colors'
 import Section from '@/components/common/Section'
@@ -7,6 +7,7 @@ import Card from '@/components/common/Card'
 import { useNavigation } from '@react-navigation/native'
 import { useGetMyTrainerQuery } from '@/store/redux/user/services/userTrainerApi'
 import { getAvatarUrl } from '@/constants/Paths'
+import Skeleton from './Skeleton'
 
 export default function MyCoachSection() {
   const navigation = useNavigation()
@@ -32,11 +33,7 @@ export default function MyCoachSection() {
     return (
       <Section>
         <AppText font="Bold" style={styles.title}>Your Coach</AppText>
-        <Card>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={Colors.BRAND} />
-          </View>
-        </Card>
+        <Skeleton />
       </Section>
     )
   }

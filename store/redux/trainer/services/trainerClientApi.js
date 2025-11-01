@@ -51,6 +51,15 @@ export const trainerClientApi = createApi({
       }),
       // Bu chat messages-i invalidate edə bilər
     }),
+
+    // Get client's progress photos (for trainer)
+    getClientProgressPhotos: build.query({
+      query: (clientId) => `/user/trainer/clients/${clientId}/progress/photos`,
+      transformResponse: (response) => response?.data || { currentWeek: 1, weeklyPhotos: [] },
+      providesTags: (result, error, clientId) => [
+        { type: "TrainerClient", id: `${clientId}-progress` }
+      ],
+    }),
   }),
 });
 
@@ -58,4 +67,5 @@ export const {
   useGetMyClientsQuery,
   useGetClientDetailsQuery,
   useSendMessageToClientMutation,
+  useGetClientProgressPhotosQuery,
 } = trainerClientApi;

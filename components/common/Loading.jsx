@@ -1,11 +1,18 @@
-import React from 'react';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import Colors from '@/constants/Colors';
+import React from "react";
+import { View, StyleSheet } from "react-native";
+import Colors from "@/constants/Colors";
+import LottieView from "lottie-react-native";
+import Lotties from "@/constants/Lotties";
 
 const Loading = () => {
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={Colors.PRIMARY} />
+      <LottieView
+        source={Lotties.loadingLottie}
+        autoPlay 
+        loop 
+        style={{ width: 200, height: 200 }} />
+      {/* <ActivityIndicator size="large" color={Colors.PRIMARY} /> */}
     </View>
   );
 };
@@ -15,8 +22,10 @@ export default Loading;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: "100%",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: Colors.BACKGROUND,
   },
 });

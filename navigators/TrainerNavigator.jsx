@@ -7,7 +7,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useNotifications } from "@/contexts/NotificationContext";
 import TrainerLayout from "@/components/layouts/TrainerLayout";
-import TrainerProfileScreen from "@/screens/main/ProfilePage/TrainerProfileScreen";
+import TrainerProfileScreen from "@/screens/trainer/TrainerProfile/TrainerProfileScreen";
 import NotificationsScreen from "@/screens/main/NotificationsScreen/NotificationsScreen";
 
 // Trainer-specific screens (bu screen-lər yaradılmalıdır)
@@ -18,7 +18,7 @@ import CreatePlanScreen from "@/screens/trainer/CreatePlanScreen";
 import TrainerPlanDetailsScreen from "@/screens/trainer/TrainerPlanDetailsScreen";
 import EditPlanScreen from "@/screens/trainer/EditPlanScreen";
 import ClientsScreen from "@/screens/trainer/ClientsScreen";
-import ClientDetailsScreen from "@/screens/trainer/ClientDetailsScreen";
+import ClientDetailsScreen from "@/screens/trainer/ClientDetails/ClientDetailsScreen";
 import ChatScreen from "@/screens/trainer/TrainerChatsScreen";
 import TrainerChatMessagesScreen from "@/screens/trainer/TrainerChatMessagesScreen";
 import UploadWorkoutProgramScreen from "@/screens/trainer/UploadWorkoutProgramScreen";
@@ -27,8 +27,11 @@ import TrainerTasksScreen from "@/screens/trainer/TrainerTasksScreen";
 import TrainerTaskDetailsScreen from "@/screens/trainer/TrainerTaskDetailsScreen";
 
 // Profile screens
-import EditTrainerProfileScreen from "@/screens/main/ProfilePage/EditTrainerProfileScreen";
+import EditTrainerProfileScreen from "@/screens/trainer/TrainerProfile/EditTrainerProfileScreen";
 import ChangePasswordScreen from "@/screens/main/ProfilePage/ChangePasswordScreen";
+import ClientDashboardScreen from "@/screens/trainer/ClientDashboardScreen";
+import ClientProgressPhotosScreen from "@/screens/trainer/ClientProgressPhotos/ClientProgressPhotosScreen";
+import TrainerDashboardScreen from "@/screens/trainer/TrainerDashboard/TrainerDashboardScreen";
 
 const Stack = createStackNavigator();
 
@@ -90,6 +93,9 @@ const TrainerNavigator = () => {
         {/* Clients Tab */}
         <Stack.Screen name="Clients" component={ClientsScreen} />
         <Stack.Screen name="ClientDetails" component={ClientDetailsScreen} />
+        <Stack.Screen name="ClientDashboard" component={ClientDashboardScreen} />
+        <Stack.Screen name="ClientProgressPhotos" component={ClientProgressPhotosScreen} />
+        <Stack.Screen name="TrainerDashboard" component={TrainerDashboardScreen} />
 
         {/* Chat Screens */}
         <Stack.Screen name="Chat" component={ChatScreen} />

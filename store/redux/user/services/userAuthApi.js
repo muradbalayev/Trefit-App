@@ -16,6 +16,7 @@ import { trainerWorkoutProgramApi } from "@/store/redux/trainer/services/trainer
 import { clearAllChatCaches } from "@/utils/chatCache";
 import { clearCachedPushToken } from "@/utils/notificationManager";
 import { baseQueryWithReauth } from "@/store/redux/utils/baseQueryWithReauth";
+import { trainerStatsApi } from "../../trainer/services/trainerStatsApi";
 
 
 // Token storage keys
@@ -191,6 +192,7 @@ export const userAuthApi = createApi({
           dispatch(trainerPlanApi.util.resetApiState());
           dispatch(trainerTaskApi.util.resetApiState());
           dispatch(trainerWorkoutProgramApi.util.resetApiState());
+          dispatch(trainerStatsApi.util.resetApiState());
           
           console.log('✅ All API caches cleared on logout');
         } catch (error) {
