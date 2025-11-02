@@ -14,8 +14,8 @@ const Header = ({user}) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logo}>
-  <Image source={Images?.logo} style={styles.logo} />  
+      <View style={styles.logoContainer}>
+  <Image source={Images?.textLogo} style={styles.logo} />  
       </View>
       {/* <View>
 
@@ -54,9 +54,14 @@ const styles = StyleSheet.create({
         right: 0,
         zIndex: 1000,
     },
+    logoContainer: {
+      width:100,
+      height: 40,
+    },
     logo: {
-      width:50,
-      height: 50,
+      width:'100%',
+      height: '100%',
+      resizeMode: 'contain',
     },
     titleContainer: {
         flex: 1,

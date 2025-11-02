@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
   },
   textContainer: {
     flex: 1,
@@ -85,12 +85,12 @@ const styles = StyleSheet.create({
     borderRadius: 28,
   },
   lineLarge: {
-    height: 16,
+    height: 18,
     borderRadius: 8,
     width: '60%',
   },
   lineMedium: {
-    height: 12,
+    height: 16,
     borderRadius: 8,
     width: '45%',
   },

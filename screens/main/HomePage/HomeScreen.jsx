@@ -7,7 +7,7 @@ import {
   RefreshControl,
   ImageBackground,
 } from "react-native";
-import { CustomScreen, SuccessModal } from "@/components/common";
+import { CustomScreen, Loading, SuccessModal } from "@/components/common";
 import Colors from "@/constants/Colors";
 import Images from "@/constants/Images";
 import Lotties from "@/constants/Lotties";
@@ -29,13 +29,17 @@ import TrainerSection from "./(components)/Trainers/TrainerSection";
 
 const HomeScreen = ({ route }) => {
   const { isAuthenticated } = useSelector((state) => state.userAuth);
-  const { data: user, refetch, isFetching } = useGetAccountQuery(undefined, {
+  const { data: user, refetch, isFetching, isLoading } = useGetAccountQuery(undefined, {
     skip: !isAuthenticated,
     refetchOnFocus: true,
     refetchOnReconnect: true,
     refetchOnMountOrArgChange: true,
   });
   // console.log(user)
+
+  if(isLoading) {
+    return <Loading />
+  }
 
   // Refetch when screen receives params (e.g., after enrollment)
   React.useEffect(() => {
@@ -106,7 +110,7 @@ const HomeScreen = ({ route }) => {
           <View style={styles.sections}>
           {hasActivePlan ? (
             <View>
-              <MyCoachSection />
+              <MyCoachSection isParentLoading={isLoading} />
               <ActivePlanCard plan={user?.plan} />
               <QuickLinksWidget />
               <StreakCard 

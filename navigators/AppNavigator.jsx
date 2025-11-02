@@ -9,8 +9,22 @@ import OnboardingNavigator from "@/navigators/OnboardingNavigator";
 import { useGetAccountQuery } from "@/store/redux/user/services/userAccountApi";
 import { useRefreshMutation, getTokens } from "@/store/redux/user/services/userAuthApi";
 import { setCredentials } from "@/store/redux/user/userAuthSlice";
-import { Loading } from "@/components/common";
+import { Splash } from "@/components/common";
 import TrainerNavigator from "@/navigators/TrainerNavigator";
+import Colors from "@/constants/Colors";
+
+// Dark theme for NavigationContainer
+const darkTheme = {
+  dark: true,
+  colors: {
+    primary: Colors.BRAND,
+    background: Colors.BACKGROUND,
+    card: Colors.CARD,
+    text: Colors.TEXT,
+    border: Colors.BORDER,
+    notification: Colors.BRAND,
+  },
+};
 
 const AppNavigator = () => {
   const dispatch = useDispatch();
@@ -79,15 +93,15 @@ const AppNavigator = () => {
     }
   }, [account, dispatch]);
 
-  // Show loading while checking onboarding status
+  // Show splash while checking onboarding status
   if (hasSeenOnboarding === null) {
-    return <Loading />;
+    return <Splash />;
   }
 
   // Show onboarding if not seen yet and not authenticated
   if (!hasSeenOnboarding && !isAuthenticated) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={darkTheme}>
         <OnboardingNavigator />
       </NavigationContainer>
     );
@@ -96,7 +110,7 @@ const AppNavigator = () => {
   // Don't show loading on refetch, only on initial load
   if (!isAuthenticated) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={darkTheme}>
         <AuthNavigator />
       </NavigationContainer>
     );
@@ -109,7 +123,7 @@ const AppNavigator = () => {
     const navKey = account?._id || authRole;
     
     return (
-      <NavigationContainer key={navKey}>
+      <NavigationContainer key={navKey} theme={darkTheme}>
         {needsUsernameSetup === true || (account && !account.username) ? (
           <SetupNavigator />
         ) : authRole === "trainer" ? (

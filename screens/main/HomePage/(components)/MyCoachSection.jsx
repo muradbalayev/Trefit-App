@@ -9,9 +9,12 @@ import { useGetMyTrainerQuery } from '@/store/redux/user/services/userTrainerApi
 import { getAvatarUrl } from '@/constants/Paths'
 import Skeleton from './Skeleton'
 
-export default function MyCoachSection() {
+export default function MyCoachSection({ isParentLoading = false }) {
   const navigation = useNavigation()
-  const { data: trainer, isLoading, error } = useGetMyTrainerQuery()
+  const { data: trainer, isLoading, error } = useGetMyTrainerQuery(undefined, {
+    // Don't fetch until parent data is loaded
+    skip: isParentLoading,
+  })
 
   const handleOpenChat = () => {
     if (trainer?._id) {
@@ -23,19 +26,19 @@ export default function MyCoachSection() {
     }
   }
 
-  // Don't show section if no trainer or error
-  if (error || !trainer) {
-    return null
-  }
-
-  // Show loading state
-  if (isLoading) {
+  // Show loading state (parent loading or query loading)
+  if (isParentLoading || isLoading) {
     return (
       <Section>
         <AppText font="Bold" style={styles.title}>Your Coach</AppText>
         <Skeleton />
       </Section>
     )
+  }
+
+  // Don't show section if no trainer or error
+  if (error || !trainer) {
+    return null
   }
 
   return (
